@@ -2,12 +2,13 @@ package fr.sorbonne_u.datacenter.software.connectors;
 
 import fr.sorbonne_u.components.connectors.AbstractConnector;
 import fr.sorbonne_u.datacenter.software.interfaces.ApplicationSubmissionI;
+import fr.sorbonne_u.datacenter.software.interfaces.RequestI;
 
 public class ApplicationSubmissionConnector extends AbstractConnector implements ApplicationSubmissionI {
 
     @Override
-    public String[] submitApplication( int nbVM ) throws Exception {
-        return ( ( ApplicationSubmissionI ) this.offering ).submitApplication( nbVM );
+    public void acceptSubmitApplicationAndNotify(RequestI r ) throws Exception {
+        ( ( ApplicationSubmissionI ) this.offering ).acceptSubmitApplicationAndNotify(r);
     }
 
 }

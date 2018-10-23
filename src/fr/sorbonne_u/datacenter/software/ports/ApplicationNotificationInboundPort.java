@@ -5,7 +5,9 @@ import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.datacenter.software.admissioncontroller.AdmissionController;
 import fr.sorbonne_u.datacenter.software.interfaces.ApplicationNotificationI;
+import fr.sorbonne_u.datacenter.software.interfaces.RequestI;
 import fr.sorbonne_u.datacenter.software.interfaces.RequestNotificationHandlerI;
+import fr.sorbonne_u.datacenterclient.applicationprovider.ApplicationProvider;
 
 public class ApplicationNotificationInboundPort extends AbstractInboundPort implements ApplicationNotificationI {
 
@@ -21,14 +23,14 @@ public class ApplicationNotificationInboundPort extends AbstractInboundPort impl
     }
 
     @Override
-    public void notifyRequestGeneratorCreated(final String requestNotificationInboundPortURI,final String rdnop ) throws Exception {
+    public void notifyRequestGeneratorCreated(final RequestI r ) throws Exception {
         
     	this.getOwner().handleRequestAsync(
 				new AbstractComponent.AbstractService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						(( AdmissionController)this.getOwner()).
-						notifyRequestGeneratorCreated(requestNotificationInboundPortURI, rdnop );
+						(( ApplicationProvider)this.getOwner()).
+						notifyRequestGeneratorCreated(r);
 						return null;
 					}
 				}) ;

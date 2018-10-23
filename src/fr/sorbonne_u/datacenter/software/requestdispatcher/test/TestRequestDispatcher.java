@@ -124,7 +124,7 @@ public class TestRequestDispatcher extends AbstractCVM{
 			this.addDeployedComponent(this.vm) ;
 			// Toggle on tracing and logging in the application virtual machine to
 			// follow the execution of individual requests.
-			this.vm.toggleTracing() ;
+			this.vm.toggleTracing() ; 
 			this.vm.toggleLogging() ;
 			// --------------------------------------------------------------------
 

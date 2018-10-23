@@ -3,6 +3,7 @@ package fr.sorbonne_u.datacenter.software.ports;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractOutboundPort;
 import fr.sorbonne_u.datacenter.software.interfaces.ApplicationSubmissionI;
+import fr.sorbonne_u.datacenter.software.interfaces.RequestI;
 
 public class ApplicationSubmissionOutboundPort extends AbstractOutboundPort implements ApplicationSubmissionI {
 
@@ -15,8 +16,8 @@ public class ApplicationSubmissionOutboundPort extends AbstractOutboundPort impl
 	}
 
 	@Override
-	public String[] submitApplication(int nbVM) throws Exception {
-		return ((ApplicationSubmissionI) this.connector).submitApplication(nbVM);
+	public void acceptSubmitApplicationAndNotify(final RequestI r) throws Exception {
+		 ((ApplicationSubmissionI) this.connector).acceptSubmitApplicationAndNotify(r);
 	}
 
 }

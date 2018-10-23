@@ -419,6 +419,7 @@ implements	RequestNotificationHandlerI
 		assert	r != null ;
 
 		if (RequestGenerator.DEBUG_LEVEL == 2) {
+			//recupere
 			this.logMessage("Request generator " + this.rgURI +
 							" is notified that request "+ r.getRequestURI() +
 							" has ended.") ;

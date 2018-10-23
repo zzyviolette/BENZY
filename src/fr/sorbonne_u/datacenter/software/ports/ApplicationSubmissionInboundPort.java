@@ -5,6 +5,8 @@ import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.datacenter.software.admissioncontroller.AdmissionController;
 import fr.sorbonne_u.datacenter.software.interfaces.ApplicationSubmissionI;
+import fr.sorbonne_u.datacenter.software.interfaces.RequestI;
+import fr.sorbonne_u.datacenter.software.interfaces.RequestSubmissionHandlerI;
 
 public class ApplicationSubmissionInboundPort extends AbstractInboundPort implements ApplicationSubmissionI {
 
@@ -20,20 +22,21 @@ public class ApplicationSubmissionInboundPort extends AbstractInboundPort implem
 
     }
 
+    
     @Override
-    public String[] submitApplication( final int nbVM ) throws Exception {
-
-        return this.getOwner().handleRequestSync( new AbstractComponent.AbstractService<String[]>() {
-
-			@Override
-			public String[] call() throws Exception {
-				// TODO Auto-generated method stub
-				return  (( AdmissionController)this.getOwner()).submitApplication(nbVM);
-			}
-
-      
-        } );
-    }
+	public void acceptSubmitApplicationAndNotify(final RequestI r)
+	throws Exception
+	{
+		this.getOwner().handleRequestAsync(
+					new AbstractComponent.AbstractService<Void>() {
+						@Override
+						public Void call() throws Exception {
+							((AdmissionController)this.getOwner()).
+							acceptSubmitApplicationAndNotify(r) ;
+							return null ;
+						}
+					}) ;
+	}
 
 }
 

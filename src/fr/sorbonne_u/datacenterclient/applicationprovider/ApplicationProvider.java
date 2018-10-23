@@ -6,6 +6,7 @@ import fr.sorbonne_u.datacenter.software.connectors.ApplicationSubmissionConnect
 import fr.sorbonne_u.datacenter.software.connectors.RequestSubmissionConnector;
 import fr.sorbonne_u.datacenter.software.interfaces.ApplicationNotificationI;
 import fr.sorbonne_u.datacenter.software.interfaces.ApplicationSubmissionI;
+import fr.sorbonne_u.datacenter.software.interfaces.RequestI;
 import fr.sorbonne_u.datacenter.software.interfaces.RequestNotificationI;
 import fr.sorbonne_u.datacenter.software.interfaces.RequestSubmissionI;
 import fr.sorbonne_u.datacenter.software.ports.ApplicationNotificationInboundPort;
@@ -15,9 +16,11 @@ import fr.sorbonne_u.datacenter.software.ports.RequestNotificationInboundPort;
 import fr.sorbonne_u.datacenter.software.ports.RequestSubmissionOutboundPort;
 import fr.sorbonne_u.datacenterclient.applicationprovider.interfaces.ApplicationProviderManagementI;
 import fr.sorbonne_u.datacenterclient.applicationprovider.ports.ApplicationProviderManagementInboundPort;
+import fr.sorbonne_u.datacenterclient.requestgenerator.Request;
 import fr.sorbonne_u.datacenterclient.requestgenerator.interfaces.RequestGeneratorManagementI;
 import fr.sorbonne_u.datacenterclient.requestgenerator.ports.RequestGeneratorManagementInboundPort;
 import fr.sorbonne_u.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
+import fr.sorbonne_u.datacenterclient.utils.TimeProcessing;
 
 public class ApplicationProvider extends AbstractComponent{
 	
@@ -28,44 +31,25 @@ public class ApplicationProvider extends AbstractComponent{
     // PORTS
     // ------------------------------------------------------------------
 
-    protected RequestGeneratorManagementOutboundPort rgmop;
-
-    protected ApplicationSubmissionOutboundPort asop;
-    protected ApplicationNotificationInboundPort anip;
-   
-
     /** the inbound port used to send/stop application **/
     protected ApplicationProviderManagementInboundPort apmip;
     
-    protected String							applicationSubmissionInboundPortURI ;
+    protected String							asipURI ;
 
-    // ------------------------------------------------------------------
-    // REQUEST GENERATOR URIs
-    // ------------------------------------------------------------------
-    /** RequestGenerator URI */
-    protected String rgUri;
+    protected ApplicationNotificationInboundPort anip;
+    
+    protected ApplicationSubmissionOutboundPort asop;
 
-    /** Request generator management inbound port */
-    protected String rgmipUri;
 
-    /** Request submission outbound port */
-    protected String rsopUri;
-
-    /** Request notification inbound port */
-    protected String rnipUri;
-
-    /** Request generator management outbound port */
-    protected String rgmopUri;
-
-	public ApplicationProvider(String apURI ,String apManagementInboundPort, String applicationSubmissionInboundPortURI ,
-            String applicationNotificationInboundPortURI) throws Exception {
+	public ApplicationProvider(String apURI ,String apmip, String asip ,
+            String anip) throws Exception {
 		super(1, 1);
 		this.apURI = apURI;
-		this.applicationSubmissionInboundPortURI = applicationSubmissionInboundPortURI;
+		this.asipURI = asip;
 		
 		this.addOfferedInterface(ApplicationProviderManagementI.class) ;
 		this.apmip = new ApplicationProviderManagementInboundPort(
-										apManagementInboundPort, this) ;
+										apmip, this) ;
 		this.addPort(this.apmip) ;
 		this.apmip.publishPort() ;
 
@@ -77,7 +61,7 @@ public class ApplicationProvider extends AbstractComponent{
 		this.addOfferedInterface(ApplicationNotificationI.class) ;
 		this.anip =
 			new ApplicationNotificationInboundPort(
-						applicationNotificationInboundPortURI, this) ;
+						anip, this) ;
 		this.addPort(this.anip) ;
 		this.anip.publishPort() ;
 		
@@ -96,21 +80,44 @@ public class ApplicationProvider extends AbstractComponent{
 		try {
 			this.doPortConnection(
 					this.asop.getPortURI(),
-					applicationSubmissionInboundPortURI,
+					asipURI,
 					ApplicationSubmissionConnector.class.getCanonicalName()) ;
 		} catch (Exception e) {
 			throw new ComponentStartException(e) ;
 		}
 	}
+	
+	
+	
+	
 
-	public void sendApplication() {
+	@Override
+	public void execute() throws Exception {
 		// TODO Auto-generated method stub
-		
+		super.execute();
+		sendApplication();
+	}
+
+
+	public void sendApplication() throws Exception {
+		// TODO Auto-generated method stub
+		Request r = new Request("demande - 0", 100000) ;
+	    this.logMessage(this.apURI+ " envoye la " + r.getRequestURI() +" au control");
+		this.asop.acceptSubmitApplicationAndNotify(r);		
 	}
 
 	public void stopApplication() {
 		// TODO Auto-generated method stub
 		
 	}
+
+
+	public void notifyRequestGeneratorCreated(RequestI r) {
+		// TODO Auto-generated method stub
+		 this.logMessage(this.apURI + " recevoit la notificatin de controle pour la " +r.getRequestURI() );
+		
+	}
+
+
 
 }
