@@ -93,21 +93,22 @@ public class RequestDispatcher extends AbstractComponent
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
 		// TODO Auto-generated method stub
 		assert r != null;
-		this.logMessage( "Request dispatcher " + this.rdURI + "  notified the request " + r.getRequestURI() + " has ended." );
+		this.logMessage( "Request dispatcher " + this.rdURI + "  revevoit la notification de le request " + r.getRequestURI() + " de VM" );
 		this.rnop.notifyRequestTermination( r );
 
 	}
-	/**
-	 * Send the Request r to the ApplicationVM
-	 */
-	@Override
-	public void acceptRequestSubmission(RequestI r) throws Exception {
-		// TODO Auto-generated method stub
-		System.out.println( this.rdURI + " submits request " + r.getRequestURI() );
-		this.logMessage( "RequestDispatcher" + rdURI + " submits request " + r.getRequestURI() );
-		this.rdsop.submitRequest(r);
-
-	}
+//	/**
+//	 * Send the Request r to the ApplicationVM
+//	 */
+//	@Override
+//	public void acceptRequestSubmission(RequestI r) throws Exception {
+//		// TODO Auto-generated method stub
+//		System.out.println( this.rdURI + " submits request " + r.getRequestURI() );
+//		this.logMessage( "Request Dispatcher" + rdURI + " recevoit le request " + r.getRequestURI() +" de request generator");
+//		this.logMessage( "Request Dispatcher" + rdURI + " envoye le request " + r.getRequestURI() +" a VM" );
+//		this.rdsop.submitRequest(r);
+//
+//	}
 	
 	/**
 	 * Send the Request r to the ApplicationVM and notify its termination to the
@@ -118,10 +119,9 @@ public class RequestDispatcher extends AbstractComponent
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
 		// TODO Auto-generated method stub
 
-		//System.out.println( this.rdURI + " submits request " + r.getRequestURI() );
-		this.logMessage( "RequestDispatcher " + rdURI + " submits request " + r.getRequestURI() );
+		this.logMessage( "Request Dispatcher " + rdURI + " recevoit le request " + r.getRequestURI() +" de request generator");
+		this.logMessage( "Request Dispatcher " + rdURI + " envoye le request " + r.getRequestURI() +" a VM" );
 		this.rdsop.submitRequestAndNotify( r );
-//		System.out.println("rdsopuri"+rdsop.getPortURI());
 
 	}
 	
@@ -167,6 +167,12 @@ public class RequestDispatcher extends AbstractComponent
 
 	@Override
 	public void disconnectVm() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void acceptRequestSubmission(RequestI r) throws Exception {
 		// TODO Auto-generated method stub
 		
 	}

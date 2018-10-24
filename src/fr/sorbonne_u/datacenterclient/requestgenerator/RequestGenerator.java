@@ -370,9 +370,15 @@ implements	RequestNotificationHandlerI
 				(long) this.rng.nextExponential(this.meanInterArrivalTime) ;
 
 		if (RequestGenerator.DEBUG_LEVEL == 2) {
+//			this.logMessage(
+//					"Request generator " + this.rgURI + 
+//					" submitting request " + r.getRequestURI() + " at " +
+//					TimeProcessing.toString(System.currentTimeMillis() +
+//														interArrivalDelay) +
+//			" with number of instructions " + noi) ;
 			this.logMessage(
 					"Request generator " + this.rgURI + 
-					" submitting request " + r.getRequestURI() + " at " +
+					" envoye le request " + r.getRequestURI() + " a Request Dispather " +
 					TimeProcessing.toString(System.currentTimeMillis() +
 														interArrivalDelay) +
 			" with number of instructions " + noi) ;
@@ -420,9 +426,11 @@ implements	RequestNotificationHandlerI
 
 		if (RequestGenerator.DEBUG_LEVEL == 2) {
 			//recupere
-			this.logMessage("Request generator " + this.rgURI +
-							" is notified that request "+ r.getRequestURI() +
-							" has ended.") ;
+//			this.logMessage("Request generator " + this.rgURI +
+//							" is notified that request "+ r.getRequestURI() +
+//							" has ended.") ;
+			this.logMessage( "Request Generator" + rgURI + " recevoit la notification de le request " + r.getRequestURI() +" de Request Dispather");
+
 		}
 	}
 }

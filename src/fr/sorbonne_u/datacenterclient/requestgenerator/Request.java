@@ -60,8 +60,11 @@ implements	RequestI
 	// ------------------------------------------------------------------------
 
 	private static final long serialVersionUID = 1L ;
+
+
 	protected final long	numberOfInstructions ;
 	protected final String	requestURI ;
+
 
 	// ------------------------------------------------------------------------
 	// Constructors
@@ -101,4 +104,6 @@ implements	RequestI
 	{
 		return this.numberOfInstructions ;
 	}
+	
+  
 }
