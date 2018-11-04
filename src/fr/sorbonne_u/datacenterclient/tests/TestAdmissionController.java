@@ -1,6 +1,7 @@
 package fr.sorbonne_u.datacenterclient.tests;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -11,9 +12,6 @@ import fr.sorbonne_u.datacenter.hardware.computers.Computer;
 import fr.sorbonne_u.datacenter.hardware.processors.Processor;
 import fr.sorbonne_u.datacenter.hardware.tests.ComputerMonitor;
 import fr.sorbonne_u.datacenter.software.admissioncontroller.AdmissionController;
-import fr.sorbonne_u.datacenter.software.admissioncontroller.connectors.AdmissionControllerManagementConnector;
-import fr.sorbonne_u.datacenter.software.admissioncontroller.interfaces.AdmissionControllerManagementI;
-import fr.sorbonne_u.datacenter.software.admissioncontroller.ports.AdmissionControllerManagementOutboundPort;
 import fr.sorbonne_u.datacenterclient.applicationprovider.ApplicationProvider;
 import fr.sorbonne_u.datacenterclient.applicationprovider.connectors.ApplicationProviderManagementConnector;
 import fr.sorbonne_u.datacenterclient.applicationprovider.interfaces.ApplicationProviderManagementI;
@@ -21,29 +19,29 @@ import fr.sorbonne_u.datacenterclient.applicationprovider.ports.ApplicationProvi
 
 public class TestAdmissionController extends AbstractCVM {
 	
-	
-	public static final String ComputerServicesInboundPortURI = "cs-ibp";
-	public static final String ComputerStaticStateDataInboundPortURI = "css-dip";
-	public static final String ComputerDynamicStateDataInboundPortURI = "cds-dip";
-	
-	
-	public static final String AdmissionControllerManagementInboundPortURI = "ac-mip";
-	public static final String ApplicationProviderManagementInboundPortURI = "ap-mip";
-	public static final String ApplicationSubmissionInboundPortURI = "asip";
-	public static final String ApplicationNotificationInboundPortURI = "anip";
 
-	protected ApplicationProvider                   ap;
+
 	protected AdmissionController                   ac;
 	protected ComputerMonitor						cm ;
 		
-	protected ApplicationProviderManagementOutboundPort apmop;
-	protected AdmissionControllerManagementOutboundPort acmop;
+	protected ArrayList<ApplicationProviderManagementOutboundPort>    apmopList;
 
+	
+	protected int sumComputer = 0;
+	
+	protected int sumApp = 3;
+	
+	
 	
 	public TestAdmissionController() throws Exception {
 		super();
 		// TODO Auto-generated constructor stub
 	}
+	
+	private String createComputerURI(String portType){
+		return portType +  sumComputer;
+	}
+	
 
 
 	@Override
@@ -51,14 +49,16 @@ public class TestAdmissionController extends AbstractCVM {
 		// TODO Auto-generated method stub
 		Processor.DEBUG = true ;
 
-
 		// --------------------------------------------------------------------
 		// Create and deploy a computer component with its 2 processors and
 		// each with 2 cores.
 		// --------------------------------------------------------------------
-		String computerURI = "computer0";
-		int numberOfProcessors = 2;
-		int numberOfCores = 4;
+		String computerURI= createComputerURI("computer");
+		String csipURI= createComputerURI("csip");
+		String cssdipURI= createComputerURI("cssdip");
+		String cdsdipURI= createComputerURI("cdsdip");
+		int numberOfProcessors = 6;
+		int numberOfCores = 2;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 		admissibleFrequencies.add(1500); // Cores can run at 1,5 GHz
 		admissibleFrequencies.add(3000); // and at 3 GHz
@@ -74,8 +74,8 @@ public class TestAdmissionController extends AbstractCVM {
 																								// GHz
 				// 3000, // Test scenario 2, frequency = 3 GHz
 				1500, // max frequency gap within a processor
-				numberOfProcessors, numberOfCores, ComputerServicesInboundPortURI,
-				ComputerStaticStateDataInboundPortURI, ComputerDynamicStateDataInboundPortURI);
+				numberOfProcessors, numberOfCores, csipURI,
+				cssdipURI, cdsdipURI);
 		this.addDeployedComponent(c);
 		// --------------------------------------------------------------------
 
@@ -83,49 +83,51 @@ public class TestAdmissionController extends AbstractCVM {
 		// Create the computer monitor component and connect its to ports
 		// with the computer component.
 		// --------------------------------------------------------------------
-		this.cm = new ComputerMonitor(computerURI, true, ComputerStaticStateDataInboundPortURI,
-				ComputerDynamicStateDataInboundPortURI);
+		this.cm = new ComputerMonitor(computerURI, true, cssdipURI,
+				cdsdipURI);
 		this.addDeployedComponent(this.cm);
+		
+		sumComputer++;
+	    
 
-		this.ac = new AdmissionController("Admission Control", AdmissionControllerManagementInboundPortURI,
-				ApplicationSubmissionInboundPortURI, ApplicationNotificationInboundPortURI,ComputerServicesInboundPortURI);
+		this.ac = new AdmissionController("Admission Controller", "acmipURI",
+				"asipURI", "anipURI",csipURI);
 
 		this.addDeployedComponent(this.ac);
 		// Toggle on tracing and logging in the application virtual machine to
 		// follow the execution of individual requests.
 		this.ac.toggleTracing();
-		this.ac.toggleLogging();	
-		
-		this.ap = new ApplicationProvider("Application Provider", ApplicationProviderManagementInboundPortURI,
-				ApplicationSubmissionInboundPortURI, ApplicationNotificationInboundPortURI);
-
-		this.addDeployedComponent(this.ap);
-		// Toggle on tracing and logging in the application virtual machine to
-		// follow the execution of individual requests.
-		this.ap.toggleTracing();
-		this.ap.toggleLogging();
+		this.ac.toggleLogging();
 		
 		
-		this.ap.addRequiredInterface(ApplicationProviderManagementI.class) ;
-		this.apmop = new ApplicationProviderManagementOutboundPort(this.ap) ;
-		this.apmop.publishPort();
+		this.apmopList = new ArrayList<>();
 		
-		this.ac.addRequiredInterface(AdmissionControllerManagementI.class) ;
-		this.acmop = new AdmissionControllerManagementOutboundPort(this.ac) ;
-		this.acmop.publishPort();
-		
+		for(int i = 0; i< sumApp; i++){
+			ApplicationProvider ap = new ApplicationProvider("ap"+i, "apmip" + i,
+					"asipURI", "anipURI");
+			this.addDeployedComponent(ap);
+			ap.toggleTracing();
+			ap.toggleLogging();
+			
+			ap.addRequiredInterface(ApplicationProviderManagementI.class) ;
+			ApplicationProviderManagementOutboundPort apmop = new ApplicationProviderManagementOutboundPort("apmop"+i,ap) ;
+			apmop.publishPort();
+			this.apmopList.add(apmop);
+		}
+				
 		super.deploy();
 		
 	}
-	
 	
 	
 	@Override
 	public void start() throws Exception {
 		// TODO Auto-generated method stub
 	
-		this.apmop.doConnection(ApplicationProviderManagementInboundPortURI,ApplicationProviderManagementConnector.class.getCanonicalName() );
-		this.acmop.doConnection(AdmissionControllerManagementInboundPortURI,AdmissionControllerManagementConnector.class.getCanonicalName() );;
+		for(int i = 0; i< this.apmopList.size(); i++){
+			System.out.println(this.apmopList.size());
+			this.apmopList.get(i).doConnection("apmip" + i,ApplicationProviderManagementConnector.class.getCanonicalName() );
+		}
 		super.start();
 
 	}
@@ -134,7 +136,9 @@ public class TestAdmissionController extends AbstractCVM {
 	public void execute() throws Exception {
 		// TODO Auto-generated method stub
 		super.execute();
-		this.apmop.sendApplication();
+		for(int i =0 ; i<this.apmopList.size(); i++){
+			this.apmopList.get(i).sendApplication((i+1));
+		}
 		
 	}
 	
@@ -143,8 +147,9 @@ public class TestAdmissionController extends AbstractCVM {
 	@Override
 	public void			finalise() throws Exception
 	{
-		if(this.apmop.connected()) this.apmop.doDisconnection();
-		if(this.acmop.connected()) this.acmop.doDisconnection();
+		for(int i =0 ; i<this.apmopList.size(); i++){
+			if(this.apmopList.get(i).connected()) this.apmopList.get(i).doDisconnection();
+		}
 		super.finalise();
 	}
 	

@@ -8,9 +8,9 @@ public class ApplicationSubmissionConnector extends AbstractConnector implements
 
 
 	@Override
-	public String[] submitApplication(int nbVM) throws Exception {
+	public String[] submitApplication(String apURI,int nbVM) throws Exception {
 		// TODO Auto-generated method stub
-		  return ( ( ApplicationSubmissionI ) this.offering ).submitApplication( nbVM );
+		  return ( ( ApplicationSubmissionI ) this.offering ).submitApplication(apURI, nbVM );
 	}
 
 }

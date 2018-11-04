@@ -7,10 +7,10 @@ import fr.sorbonne_u.datacenter.software.interfaces.RequestI;
 public class ApplicationNotificationConnector extends AbstractConnector implements ApplicationNotificationI {
 
     @Override
-    public void notifyRequestGeneratorCreated( String requestNotificationInboundPortURI , String rdnopUri )
+    public void notifyRequestGeneratorCreated( String apURI)
             throws Exception {
         ( ( ApplicationNotificationI ) this.offering )
-                .notifyRequestGeneratorCreated( requestNotificationInboundPortURI , rdnopUri );
+                .notifyRequestGeneratorCreated( apURI );
     }
 
 

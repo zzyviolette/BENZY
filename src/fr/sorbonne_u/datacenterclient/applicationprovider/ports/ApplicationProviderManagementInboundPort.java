@@ -21,13 +21,13 @@ public class ApplicationProviderManagementInboundPort extends AbstractInboundPor
 	}
 
 	@Override
-	public void sendApplication() throws Exception {
+	public void sendApplication(int nbVM) throws Exception {
 
-		this.getOwner().handleRequestAsync(new AbstractComponent.AbstractService<Void>() {
+		this.getOwner().handleRequestSync(new AbstractComponent.AbstractService<Void>() {
 
 			@Override
 			public Void call() throws Exception {
-				((ApplicationProvider) this.getOwner()).sendApplication();
+				((ApplicationProvider) this.getOwner()).sendApplication(nbVM);
 				return null;
 
 			}

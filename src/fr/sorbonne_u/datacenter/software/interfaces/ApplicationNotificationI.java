@@ -6,6 +6,7 @@ import fr.sorbonne_u.components.interfaces.RequiredI;
 public interface ApplicationNotificationI extends OfferedI, RequiredI {
 
 
-	void notifyRequestGeneratorCreated(String requestNotificationInboundPortURI, String rdnopUri) throws Exception;
+	void notifyRequestGeneratorCreated(String apURI) throws Exception;
+
 
 }

@@ -6,7 +6,7 @@ import fr.sorbonne_u.components.interfaces.RequiredI;
 public interface ApplicationProviderManagementI extends OfferedI, RequiredI {
 
 	   
-    public void sendApplication() throws Exception;
+	public void sendApplication(int nbVM) throws Exception;
 
     public void stopApplication() throws Exception;
 

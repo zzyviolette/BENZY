@@ -1,31 +1,19 @@
 package fr.sorbonne_u.datacenterclient.applicationprovider;
 
 import fr.sorbonne_u.components.AbstractComponent;
-import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.datacenter.software.connectors.ApplicationNotificationConnector;
 import fr.sorbonne_u.datacenter.software.connectors.ApplicationSubmissionConnector;
-import fr.sorbonne_u.datacenter.software.connectors.RequestSubmissionConnector;
 import fr.sorbonne_u.datacenter.software.interfaces.ApplicationNotificationI;
 import fr.sorbonne_u.datacenter.software.interfaces.ApplicationSubmissionI;
-import fr.sorbonne_u.datacenter.software.interfaces.RequestI;
-import fr.sorbonne_u.datacenter.software.interfaces.RequestNotificationI;
-import fr.sorbonne_u.datacenter.software.interfaces.RequestSubmissionI;
-import fr.sorbonne_u.datacenter.software.ports.ApplicationNotificationInboundPort;
 import fr.sorbonne_u.datacenter.software.ports.ApplicationNotificationOutboundPort;
 import fr.sorbonne_u.datacenter.software.ports.ApplicationSubmissionOutboundPort;
-import fr.sorbonne_u.datacenter.software.ports.RequestNotificationInboundPort;
-import fr.sorbonne_u.datacenter.software.ports.RequestSubmissionOutboundPort;
 import fr.sorbonne_u.datacenterclient.applicationprovider.interfaces.ApplicationProviderManagementI;
 import fr.sorbonne_u.datacenterclient.applicationprovider.ports.ApplicationProviderManagementInboundPort;
-import fr.sorbonne_u.datacenterclient.requestgenerator.Request;
 import fr.sorbonne_u.datacenterclient.requestgenerator.RequestGenerator;
 import fr.sorbonne_u.datacenterclient.requestgenerator.connectors.RequestGeneratorManagementConnector;
-import fr.sorbonne_u.datacenterclient.requestgenerator.interfaces.RequestGeneratorManagementI;
-import fr.sorbonne_u.datacenterclient.requestgenerator.ports.RequestGeneratorManagementInboundPort;
 import fr.sorbonne_u.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
-import fr.sorbonne_u.datacenterclient.utils.TimeProcessing;
 
 public class ApplicationProvider extends AbstractComponent {
 
@@ -44,12 +32,10 @@ public class ApplicationProvider extends AbstractComponent {
 	protected RequestGenerator rg;
 	protected RequestGeneratorManagementOutboundPort rgmop;
 	
+	protected String rgURI;
 	
-    /** Request generator management outbound port */
-    protected String rgmipUri = "rgmip";
-
-	
-	public static final String RequestGeneratorManagementInboundPortURI = "rgmip";
+    protected String rgmipURI;
+    protected String rgmopURI;
 
 	public ApplicationProvider(String apURI, String apmip, String asip, String anip) throws Exception {
 		super(1, 1);
@@ -74,7 +60,16 @@ public class ApplicationProvider extends AbstractComponent {
 		this.anop.publishPort();
 
 		// TODO Auto-generated constructor stub
+		this.rgURI = createRGURI("rg");
+		this.rgmipURI = createRGURI("rgmip");
+		this.rgmopURI = createRGURI("rgmop");
+	    
 
+	}
+	
+	private String createRGURI(String portType){
+
+       return  this.apURI + "-" + portType;
 	}
 
 	@Override
@@ -91,32 +86,26 @@ public class ApplicationProvider extends AbstractComponent {
 		}
 	}
 
-	public void sendApplication() throws Exception {
+	public void sendApplication(int nbVM) throws Exception {
 		// TODO Auto-generated method stub
-//		Request r = new Request("demande - 0", 100000);
+
 		this.logMessage(this.apURI + " envoye la demande au control");
-//		this.asop.acceptSubmitApplicationAndNotify(r);
-		String res[] = this.asop.submitApplication( 4 );
-		System.out.println(res[0]+"***"+res[1]);
-		
-		this.rg = new RequestGenerator("rg", // generator component URI
+		String res[] = this.asop.submitApplication(this.apURI, nbVM );
+		System.out.println("ap"+"*************"+this.apURI);
+		System.out.println("ap"+"*************"+res[0] + "*********" + res[1]);
+		this.rg = new RequestGenerator(this.rgURI, // generator component URI
 				100.0, // mean time between two requests 500
 				6000000000L, // mean number of instructions in requests
-				RequestGeneratorManagementInboundPortURI, res[0],
+				this.rgmipURI, res[0],
 				res[1]);
-//		AbstractCVM.getCVM().addDeployedComponent(rg);
-
-		// Toggle on tracing and logging in the request generator to
-		// follow the submission and end of execution notification of
-		// individual requests.
+		//AbstractCVM.getCVM().addDeployedComponent( this.rg );
 		this.rg.toggleTracing();
 		this.rg.toggleLogging();
 		
 		this.rgmop = new RequestGeneratorManagementOutboundPort(this);
         this.rgmop.publishPort();
-        this.rgmop.doConnection( this.rgmipUri , RequestGeneratorManagementConnector.class.getCanonicalName() );
-		
-        this.anop.notifyRequestGeneratorCreated( "test1" , "test2");
+        this.rgmop.doConnection( this.rgmipURI , RequestGeneratorManagementConnector.class.getCanonicalName() );
+        this.anop.notifyRequestGeneratorCreated( this.apURI );
         
 		this.rg.start();
 		this.rgmop.startGeneration() ;
