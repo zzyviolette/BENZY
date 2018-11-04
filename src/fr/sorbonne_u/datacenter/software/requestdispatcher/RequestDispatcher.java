@@ -196,6 +196,10 @@ public class RequestDispatcher extends AbstractComponent
 	{
 		super.start() ;
 
+	
+	}
+	
+	public void doConnect() throws Exception{
 		try {
 			//connect to rg
 			this.doPortConnection(

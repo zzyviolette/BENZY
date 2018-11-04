@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.sorbonne_u.components.AbstractComponent;
+import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.datacenter.software.admissioncontroller.connectors.AdmissionControllerManagementConnector;
 import fr.sorbonne_u.datacenter.software.admissioncontroller.interfaces.AdmissionControllerManagementI;
@@ -127,7 +128,8 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 			vmList.add(new ApplicationVM(vmURIList.get(i), // application vm component URI
 					avmipURIList.get(i), 
 					avmrsipURIList.get(i), 
-					avmrnipURIList.get(i) ));		
+					avmrnipURIList.get(i) ));
+			AbstractCVM.getCVM().addDeployedComponent( vmList.get(i) );
 			vmList.get(i).toggleTracing();
 			vmList.get(i).toggleLogging();
 			sumCreatedVM++;
@@ -143,17 +145,19 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 				vmURIList, 
 				avmrsipURIList, 
 				avmrnipURIList);
+		AbstractCVM.getCVM().addDeployedComponent( rd );
 		rd.toggleTracing();
 		rd.toggleLogging();
 		rdMap.put(apURI, rd);
 		
 		Integrator2 integ = new Integrator2(this.csipURI,avmipURIList,rdmip);	
+		AbstractCVM.getCVM().addDeployedComponent( integ );
 		//allocation and start
-		integ.start();
+		integ.doConnect();
 		integ.allocateCores(2);
 		
 		for (int i = 0; i < nbVm; i++) {
-			vmList.get(i).start();
+			vmList.get(i).doConnect();
 		}
 		
 		ports[0] = rdrsip;
@@ -171,7 +175,7 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 		// TODO Auto-generated method stub
 		//compelet the connection (rd and rg)
 			System.out.println("ac notify : " + apURI);
-			rdMap.get(apURI).start();
+			rdMap.get(apURI).doConnect();
 		
 	}
 	

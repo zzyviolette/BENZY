@@ -1,6 +1,7 @@
 package fr.sorbonne_u.datacenterclient.applicationprovider;
 
 import fr.sorbonne_u.components.AbstractComponent;
+import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.datacenter.software.connectors.ApplicationNotificationConnector;
@@ -98,7 +99,7 @@ public class ApplicationProvider extends AbstractComponent {
 				6000000000L, // mean number of instructions in requests
 				this.rgmipURI, res[0],
 				res[1]);
-		//AbstractCVM.getCVM().addDeployedComponent( this.rg );
+		AbstractCVM.getCVM().addDeployedComponent( this.rg );
 		this.rg.toggleTracing();
 		this.rg.toggleLogging();
 		

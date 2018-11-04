@@ -93,6 +93,9 @@ extends		AbstractComponent
 	public void			start() throws ComponentStartException
 	{
 		super.start() ;
+	}
+	
+	public void doConnect() throws Exception{
 
 		try {
 			this.doPortConnection(

@@ -159,8 +159,8 @@ public class TestAdmissionController extends AbstractCVM {
 		// AbstractCVM.toggleDebugMode() ;
 		try {
 			final TestAdmissionController test = new TestAdmissionController() ;
-			test.startStandardLifeCycle(1000000L) ;//10000
-			Thread.sleep(10000L) ;
+			test.startStandardLifeCycle(10000L) ;//10000
+			Thread.sleep(10000L) ;//10000
 	//		 Exit from Java.
 			System.exit(0) ;
 		   
