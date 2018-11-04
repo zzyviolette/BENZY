@@ -328,6 +328,7 @@ implements	ProcessorServicesNotificationConsumerI,
 	public void			acceptRequestSubmission(final RequestI r)
 	throws Exception
 	{
+		
 		this.taskQueue.add(new Task(r)) ;
 		this.startTask() ;
 	}

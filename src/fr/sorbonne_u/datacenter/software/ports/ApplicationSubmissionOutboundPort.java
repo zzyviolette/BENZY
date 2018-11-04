@@ -7,6 +7,11 @@ import fr.sorbonne_u.datacenter.software.interfaces.RequestI;
 
 public class ApplicationSubmissionOutboundPort extends AbstractOutboundPort implements ApplicationSubmissionI {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public ApplicationSubmissionOutboundPort(ComponentI owner) throws Exception {
 		super(ApplicationSubmissionI.class, owner);
 	}
@@ -16,8 +21,9 @@ public class ApplicationSubmissionOutboundPort extends AbstractOutboundPort impl
 	}
 
 	@Override
-	public void acceptSubmitApplicationAndNotify(final RequestI r) throws Exception {
-		 ((ApplicationSubmissionI) this.connector).acceptSubmitApplicationAndNotify(r);
+	public String[] submitApplication(int nbVM) throws Exception {
+		// TODO Auto-generated method stub
+		return ( ( ApplicationSubmissionI ) this.connector ).submitApplication( nbVM );
 	}
 
 }

@@ -121,7 +121,7 @@ implements	RequestNotificationI
 	public void			notifyRequestTermination(final RequestI r)
 	throws Exception
 	{
-		this.getOwner().handleRequestAsync(
+		this.getOwner().handleRequestSync(
 				new AbstractComponent.AbstractService<Void>() {
 					@Override
 					public Void call() throws Exception {

@@ -377,8 +377,8 @@ implements	RequestNotificationHandlerI
 //														interArrivalDelay) +
 //			" with number of instructions " + noi) ;
 			this.logMessage(
-					"Request generator " + this.rgURI + 
-					" envoye le request " + r.getRequestURI() + " a Request Dispather " +
+					 this.rgURI + 
+					" envoye le request " + r.getRequestURI() + " a RD " +
 					TimeProcessing.toString(System.currentTimeMillis() +
 														interArrivalDelay) +
 			" with number of instructions " + noi) ;
@@ -429,7 +429,7 @@ implements	RequestNotificationHandlerI
 //			this.logMessage("Request generator " + this.rgURI +
 //							" is notified that request "+ r.getRequestURI() +
 //							" has ended.") ;
-			this.logMessage( "Request Generator" + rgURI + " recevoit la notification de le request " + r.getRequestURI() +" de Request Dispather");
+			this.logMessage( this.rgURI + " recevoit la notification de le request " + r.getRequestURI() +" de RD");
 
 		}
 	}

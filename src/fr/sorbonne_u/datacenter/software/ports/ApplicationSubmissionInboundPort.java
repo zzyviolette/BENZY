@@ -24,19 +24,19 @@ public class ApplicationSubmissionInboundPort extends AbstractInboundPort implem
 
     
     @Override
-	public void acceptSubmitApplicationAndNotify(final RequestI r)
-	throws Exception
-	{
-		this.getOwner().handleRequestAsync(
-					new AbstractComponent.AbstractService<Void>() {
-						@Override
-						public Void call() throws Exception {
-							((AdmissionController)this.getOwner()).
-							acceptSubmitApplicationAndNotify(r) ;
-							return null ;
-						}
-					}) ;
-	}
+    public String[] submitApplication( final int nbVM ) throws Exception {
+       
+		return this.getOwner().handleRequestSync(
+		new AbstractComponent.AbstractService<String[]>() {
+			@Override
+			public String[] call() throws Exception {
+                			
+				return ((AdmissionController) this.getOwner()).submitApplication( nbVM );
+			
+			}
+		}) ;
+       
+    }
 
 }
 

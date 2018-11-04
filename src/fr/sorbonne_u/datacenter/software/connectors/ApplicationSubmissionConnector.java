@@ -6,9 +6,11 @@ import fr.sorbonne_u.datacenter.software.interfaces.RequestI;
 
 public class ApplicationSubmissionConnector extends AbstractConnector implements ApplicationSubmissionI {
 
-    @Override
-    public void acceptSubmitApplicationAndNotify(RequestI r ) throws Exception {
-        ( ( ApplicationSubmissionI ) this.offering ).acceptSubmitApplicationAndNotify(r);
-    }
+
+	@Override
+	public String[] submitApplication(int nbVM) throws Exception {
+		// TODO Auto-generated method stub
+		  return ( ( ApplicationSubmissionI ) this.offering ).submitApplication( nbVM );
+	}
 
 }
