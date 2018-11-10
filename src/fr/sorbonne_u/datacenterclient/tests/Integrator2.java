@@ -40,7 +40,6 @@ public class				Integrator2
 extends		AbstractComponent
 {
 	protected String									rmipURI ;
-	protected String									csipURI ;
 	protected ArrayList<String>							avmipURIList ;
 	protected String                                    rdmipURI;
 
@@ -52,26 +51,22 @@ extends		AbstractComponent
 	protected RequestDispatcherManagementOutboundPort rdmop;
 
 	public				Integrator2(
-		String csipURI,
+		ComputerServicesOutboundPort  csop,
 		ArrayList<String> avmipURIList,
 		String rdmipURI
 		) throws Exception
 	{
 		super(1, 0) ;
 
-		assert	csipURI != null && rdmipURI != null && avmipURIList.size()>0;
+		assert	csop != null && rdmipURI != null && avmipURIList.size()>0;
 
 		this.rdmipURI = rdmipURI;
-		this.csipURI = csipURI;
+		this.csop = csop;
 		this.avmipURIList = new ArrayList<>(avmipURIList);
 
 		this.addRequiredInterface(ComputerServicesI.class) ;
 		this.addRequiredInterface(RequestGeneratorManagementI.class) ;
 		this.addRequiredInterface(ApplicationVMManagementI.class) ;
-
-		this.csop = new ComputerServicesOutboundPort(this) ;
-		this.addPort(this.csop) ;
-		this.csop.publishPort() ;
 
 		this.rdmop = new RequestDispatcherManagementOutboundPort(this) ;
 		this.addPort(this.rdmop) ;
@@ -94,10 +89,6 @@ extends		AbstractComponent
 	{
 		super.start() ;
 		try {
-			this.doPortConnection(
-				this.csop.getPortURI(),
-				this.csipURI,
-				ComputerServicesConnector.class.getCanonicalName()) ;
 			
 			for(int i = 0; i<this.avmipURIList.size(); i++){
 				this.doPortConnection(
@@ -135,7 +126,6 @@ extends		AbstractComponent
 	@Override
 	public void			finalise() throws Exception
 	{
-		this.doPortDisconnection(this.csop.getPortURI()) ;
 		this.doPortDisconnection(this.rdmop.getPortURI()) ;
 		for (int i = 0; i< this.avmopList.size(); i++) { 
 			this.doPortDisconnection(this.avmopList.get(i).getPortURI());
@@ -151,7 +141,6 @@ extends		AbstractComponent
 	public void			shutdown() throws ComponentShutdownException
 	{
 		try {
-			this.csop.unpublishPort() ;
 			this.rdmop.unpublishPort() ;
 			for (int i = 0; i< this.avmopList.size(); i++) { 
 				this.avmopList.get(i).unpublishPort();
@@ -169,7 +158,6 @@ extends		AbstractComponent
 	public void			shutdownNow() throws ComponentShutdownException
 	{
 		try {
-			this.csop.unpublishPort() ;
 			this.rdmop.unpublishPort() ;
 			for (int i = 0; i< this.avmopList.size(); i++) { 
 				this.avmopList.get(i).unpublishPort();

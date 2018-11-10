@@ -89,31 +89,36 @@ public class ApplicationProvider extends AbstractComponent {
 	public void sendApplication(int nbVM) throws Exception {
 		
 		this.logMessage(this.apURI + " envoye la demande au control");
-		
-		String rdportURI[] = this.asop.submitApplication(nbVM );
+		String rdportURI[] = this.asop.submitApplication(nbVM);
 		//si rdportURI nest pas null creer rg 
-		this.rg = new RequestGenerator(this.rgURI, // generator component URI
-				100.0, // mean time between two requests 500
-				6000000000L, // mean number of instructions in requests
-				this.rgmipURI, rdportURI[0],rdportURI[1]);
-		AbstractCVM.getCVM().addDeployedComponent( this.rg );
-		this.rg.toggleTracing();
-		this.rg.toggleLogging();
-		
-		this.rgmop = new RequestGeneratorManagementOutboundPort(this);
-        this.rgmop.publishPort();
-        this.rgmop.doConnection( this.rgmipURI , RequestGeneratorManagementConnector.class.getCanonicalName() );
-       
-        //envoyer la notification a admission controller pour lancer rd et vm
-        this.anop.notifyRequestGeneratorCreated();
-      
-		this.rg.start();
-		this.rgmop.startGeneration() ;
-		// wait 20 seconds
-		Thread.sleep(2000L) ;
-		// then stop the generation.
-		this.stopApplication();
-        
+		if(rdportURI==null){
+			this.logMessage("la demande de "+ this.apURI + " est refuse par AdmissionController ");
+		}else{
+			this.logMessage("la demande de "+ this.apURI + " est accepte par AdmissionController ");
+			this.rg = new RequestGenerator(this.rgURI, // generator component URI
+					100.0, // mean time between two requests 500
+					6000000000L, // mean number of instructions in requests
+					this.rgmipURI, rdportURI[0],rdportURI[1]);
+			AbstractCVM.getCVM().addDeployedComponent( this.rg );
+			this.rg.toggleTracing();
+			this.rg.toggleLogging();
+			
+			this.rgmop = new RequestGeneratorManagementOutboundPort(this);
+	        this.rgmop.publishPort();
+	        this.rgmop.doConnection( this.rgmipURI , RequestGeneratorManagementConnector.class.getCanonicalName() );
+	       
+	        //envoyer la notification a admission controller pour lancer rd et vm
+	        this.anop.notifyRequestGeneratorCreated();
+	      
+			this.rg.start();
+			this.rgmop.startGeneration() ;
+			// wait 20 seconds
+			Thread.sleep(2000L) ;
+			// then stop the generation.
+			this.stopApplication();
+	        
+		}
+
 	}
 
 	public void stopApplication() {

@@ -8,6 +8,8 @@ import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.datacenter.dymaniccomponentcreator.connectors.DynamicComponentCreationConnector;
 import fr.sorbonne_u.datacenter.dymaniccomponentcreator.interfaces.DynamicComponentCreationI;
 import fr.sorbonne_u.datacenter.dymaniccomponentcreator.ports.DynamicComponentCreationOutboundPort;
+import fr.sorbonne_u.datacenter.hardware.computers.connectors.ComputerServicesConnector;
+import fr.sorbonne_u.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.sorbonne_u.datacenter.software.admissioncontroller.connectors.AdmissionControllerManagementConnector;
 import fr.sorbonne_u.datacenter.software.admissioncontroller.interfaces.AdmissionControllerManagementI;
 import fr.sorbonne_u.datacenter.software.admissioncontroller.ports.AdmissionControllerManagementInboundPort;
@@ -21,6 +23,8 @@ import fr.sorbonne_u.datacenterclient.tests.Integrator2;
 
 public class AdmissionController extends AbstractComponent implements AdmissionControllerManagementI {
 
+	protected int nbCorePerAVM = 2;
+	
 	protected String acURI;
 	
 	protected String acmipURI;
@@ -29,7 +33,9 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 	
 	protected String anipURI;
 	
-	protected String csipURI;
+    protected String[]                        csipURIList;
+	
+	protected int[]                           nbAvailableCoresPerComputer;
 	
 	protected String dccipURI;
 	
@@ -42,13 +48,17 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 	protected ApplicationNotificationInboundPort anip;
 	
 	protected DynamicComponentCreationOutboundPort dccop;
+	
+	protected ComputerServicesOutboundPort[]	csopList ;
 
 	protected int sumCreatedVM = 0;
 	
 	protected int sumApp = 0;
+	
+	
 
 
-	public AdmissionController(String acURI, String acmipURI, String asipURI, String anipURI,String csipURI,String dccipURI) throws Exception {
+	public AdmissionController(String acURI, String acmipURI, String asipURI, String anipURI,String[] csipURIList,int[] nbAvailableCoresPerComputer ,String dccipURI) throws Exception {
 		super(1, 1);
 
 		// Preconditions
@@ -56,14 +66,16 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 		assert acmipURI != null;
 		assert asipURI != null;
 		assert anipURI != null;
-		assert csipURI !=null;
+		assert csipURIList.length>0;
+		assert nbAvailableCoresPerComputer.length>0;
 		assert dccipURI != null;
 
 		this.acURI = acURI;
 		this.acmipURI = acmipURI;
 		this.anipURI = anipURI;
 		this.asipURI = asipURI;
-		this.csipURI = csipURI;
+		this.csipURIList = csipURIList;
+		this.nbAvailableCoresPerComputer = nbAvailableCoresPerComputer;
 		this.dccipURI = dccipURI;
 		
 
@@ -88,6 +100,14 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 		this.addPort(this.anip);
 		this.anip.publishPort();
 		
+		csopList = new ComputerServicesOutboundPort[this.csipURIList.length];	
+		for(int i =0; i< this.csipURIList.length;i++){
+		   ComputerServicesOutboundPort csop = new ComputerServicesOutboundPort(this) ;
+		   addPort(csop) ;
+		   csop.publishPort();
+		   csopList[i]=csop;
+		}
+		
 		// les ports pour la connexion avec dynamique creator
 		addRequiredInterface(DynamicComponentCreationI.class);
 		this.dccop = new DynamicComponentCreationOutboundPort(this);
@@ -102,6 +122,12 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 		// TODO Auto-generated method stub
 		super.start();
 		try {
+			for(int i =0; i< this.csipURIList.length;i++){
+				this.doPortConnection(
+				this.csopList[i].getPortURI(),
+				this.csipURIList[i],
+				ComputerServicesConnector.class.getCanonicalName()) ;
+				}
 			this.acmop.doConnection(this.acmipURI, AdmissionControllerManagementConnector.class.getCanonicalName() );
 			this.dccop.doConnection(this.dccipURI, DynamicComponentCreationConnector.class.getCanonicalName());
 		} catch (Exception e) {
@@ -112,20 +138,40 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 
 	@Override
 	public void finalise() throws Exception {
+		for(int i =0; i< this.csipURIList.length;i++){
+			if(this.csopList[i].connected()) this.csopList[i].doDisconnection();
+			}
 		if(this.acmop.connected()) this.acmop.doDisconnection();
 		if(this.dccop.connected()) this.dccop.doDisconnection();
 		super.finalise();
 	}
 	
 
+	
+	public int findRessource(int nbCores){
+		int index = -1;
+		for (int i = 0; i < this.nbAvailableCoresPerComputer.length; i++) {
+			if (this.nbAvailableCoresPerComputer[i] >= nbCores) {
+				return i;
+			}
+		}
+		return index;
+	}
+	
 
 	public String[] submitApplication(int nbVm) throws Exception {
 		//check source
 		
-		this.logMessage(this.acURI + "recevoit une demande de " + nbVm +" VM");
+		this.logMessage(this.acURI + " recevoit une demande de " + nbVm +" VM");
 		this.logMessage("check the ressource>>>>>>>>>>>>>>");
-		Thread.sleep(3000L);
-			
+		int index = findRessource(nbVm*nbCorePerAVM);
+		if(index==-1){
+			this.logMessage(this.acURI + " refuse cette demande");
+			return null;
+		}
+		this.nbAvailableCoresPerComputer[index] = this.nbAvailableCoresPerComputer[index] - nbVm*nbCorePerAVM;
+		this.logMessage(this.acURI + " accept cette demande");
+		
 		ArrayList<String> vmURIList = new ArrayList<String>();
 		ArrayList<String> avmipURIList = new ArrayList<>();
 		ArrayList<String> avmrnipURIList = new ArrayList<>();
@@ -165,7 +211,7 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 		
 		//creer le integrator
 		Object[] argumentsIntegrator = {
-				this.csipURI,avmipURIList,rdmipURI};
+				this.csopList[index],avmipURIList,rdmipURI};
 		
 		this.dccop.createComponent(Integrator2.class.getCanonicalName(),
 				argumentsIntegrator);
