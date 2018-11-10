@@ -21,22 +21,20 @@ public class ApplicationProvider extends AbstractComponent {
 	/** the URI of the component. */
 	protected String apURI;
 
-	/** the inbound port used to send/stop application **/
-	protected ApplicationProviderManagementInboundPort apmip;
-
 	protected String asipURI;
 	protected String anipURI;
+		
+    protected String rgURI;	
+    protected String rgmipURI;
+    protected String rgmopURI;
 	
 	protected ApplicationSubmissionOutboundPort asop;
 	protected ApplicationNotificationOutboundPort anop;
+	protected ApplicationProviderManagementInboundPort apmip;
 
 	protected RequestGenerator rg;
 	protected RequestGeneratorManagementOutboundPort rgmop;
 	
-	protected String rgURI;
-	
-    protected String rgmipURI;
-    protected String rgmopURI;
 
 	public ApplicationProvider(String apURI, String apmip, String asip, String anip) throws Exception {
 		super(1, 1);
@@ -50,6 +48,7 @@ public class ApplicationProvider extends AbstractComponent {
 		this.addPort(this.apmip);
 		this.apmip.publishPort();
 
+		//les ports pour la connextion avec admission controller
 		this.addRequiredInterface(ApplicationSubmissionI.class);
 		this.asop = new ApplicationSubmissionOutboundPort(this);
 		this.addPort(this.asop);
@@ -60,15 +59,15 @@ public class ApplicationProvider extends AbstractComponent {
 		this.addPort(this.anop);
 		this.anop.publishPort();
 
-		// TODO Auto-generated constructor stub
-		this.rgURI = createRGURI("rg");
-		this.rgmipURI = createRGURI("rgmip");
-		this.rgmopURI = createRGURI("rgmop");
+		
+		this.rgURI = createRgURI("rg");
+		this.rgmipURI = createRgURI("rgmip");
+		this.rgmopURI = createRgURI("rgmop");
 	    
 
 	}
 	
-	private String createRGURI(String portType){
+	private String createRgURI(String portType){
 
        return  this.apURI + "-" + portType;
 	}
@@ -88,17 +87,15 @@ public class ApplicationProvider extends AbstractComponent {
 	}
 
 	public void sendApplication(int nbVM) throws Exception {
-		// TODO Auto-generated method stub
-
+		
 		this.logMessage(this.apURI + " envoye la demande au control");
-		String res[] = this.asop.submitApplication(this.apURI, nbVM );
-		System.out.println("ap"+"*************"+this.apURI);
-		System.out.println("ap"+"*************"+res[0] + "*********" + res[1]);
+		
+		String rdportURI[] = this.asop.submitApplication(nbVM );
+		//si rdportURI nest pas null creer rg 
 		this.rg = new RequestGenerator(this.rgURI, // generator component URI
 				100.0, // mean time between two requests 500
 				6000000000L, // mean number of instructions in requests
-				this.rgmipURI, res[0],
-				res[1]);
+				this.rgmipURI, rdportURI[0],rdportURI[1]);
 		AbstractCVM.getCVM().addDeployedComponent( this.rg );
 		this.rg.toggleTracing();
 		this.rg.toggleLogging();
@@ -106,13 +103,15 @@ public class ApplicationProvider extends AbstractComponent {
 		this.rgmop = new RequestGeneratorManagementOutboundPort(this);
         this.rgmop.publishPort();
         this.rgmop.doConnection( this.rgmipURI , RequestGeneratorManagementConnector.class.getCanonicalName() );
-        this.anop.notifyRequestGeneratorCreated( this.apURI );
-        
+       
+        //envoyer la notification a admission controller pour lancer rd et vm
+        this.anop.notifyRequestGeneratorCreated();
+      
 		this.rg.start();
 		this.rgmop.startGeneration() ;
-//		// wait 20 seconds
+		// wait 20 seconds
 		Thread.sleep(2000L) ;
-//		// then stop the generation.
+		// then stop the generation.
 		this.stopApplication();
         
 	}
@@ -130,12 +129,11 @@ public class ApplicationProvider extends AbstractComponent {
 	@Override
 	public void			finalise() throws Exception
 	{
-           	
+	      if ( this.rgmop.connected() ) {
+              this.rgmop.doDisconnection();
+          } 	
 	      if ( this.asop.connected() ) {
               this.asop.doDisconnection();
-          }
-          if ( this.rgmop.connected() ) {
-              this.rgmop.doDisconnection();
           }
           if ( this.anop.connected() ) {
               this.anop.doDisconnection();
@@ -150,7 +148,7 @@ public class ApplicationProvider extends AbstractComponent {
 		try {
 			if (this.rgmop.isPublished()) this.rgmop.unpublishPort();
 			if (this.asop.isPublished()) this.asop.unpublishPort();
-			if (this.asop.isPublished()) this.asop.unpublishPort();
+			if (this.anop.isPublished()) this.anop.unpublishPort();
 			
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e);

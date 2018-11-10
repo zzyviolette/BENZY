@@ -31,33 +31,22 @@ public class RequestDispatcher extends AbstractComponent
 	
 	protected RequestDispatcherManagementInboundPort rdmip;
 
-	//connect to rg
-	//uris for connect to rg
+	//uris de ports de rg 
 	protected String							rd_rg_rsipURI;
 	protected String							rd_rg_rnipURI;
 	
-	/** RequestSubmissionInboundPort */
-	protected RequestSubmissionInboundPort rd_rg_rsip;
-	
-	/** Outbound port used by the RD to notify tasks' end to the generator. */
-	protected RequestNotificationOutboundPort rd_rg_rnop;
-	
-	
-    //connect to avm
-	
-	protected ArrayList<String> vmURIList;
-	
-	//uris for connect to available avms
+	//uris de ports de vm
+	protected ArrayList<String>                         vmURIList;
 	protected ArrayList<String>							rd_vm_rsipURIList ;
 	protected ArrayList<String>							rd_vm_rnipURIList ;
 	
-	/** InboundPort uses to get the notification task end (by VM) */
-	protected ArrayList<RequestNotificationInboundPort> rd_vm_rnipList;
+	protected RequestSubmissionInboundPort rd_rg_rsip;
+	protected RequestNotificationOutboundPort rd_rg_rnop;
 
-	/** OutboundPort to send requests to the connected ApplicationVM */	
+	protected ArrayList<RequestNotificationInboundPort> rd_vm_rnipList;
 	protected ArrayList<RequestSubmissionOutboundPort> rd_vm_rsopList;
 	
-	// stock the priority of vm (LRU algo)
+	// la priorite des vms (LRU algo)
 	protected ArrayList<Long> vmUseList;
 
 
@@ -100,7 +89,7 @@ public class RequestDispatcher extends AbstractComponent
 		this.addPort(this.rdmip);
 		this.rdmip.publishPort();
 
-		//connect to rg
+		//les ports pour la connexion avec rg
 		this.addOfferedInterface(RequestSubmissionI.class);
 		this.rd_rg_rsip = new RequestSubmissionInboundPort(this.rd_rg_rsipURI, this);
 		this.addPort(this.rd_rg_rsip);
@@ -112,7 +101,7 @@ public class RequestDispatcher extends AbstractComponent
 		this.rd_rg_rnop.publishPort();
 
 
-		//connect to vm 
+		//la connextion pour tous les vms 
 		
 		for(int i = 0; i<this.vmURIList.size(); i++){
 			
@@ -137,9 +126,9 @@ public class RequestDispatcher extends AbstractComponent
 		
 	}
 
-//	/**
-//	 * Send the Request r to the ApplicationVM
-//	 */
+	/**
+	 * Send the Request r to the ApplicationVM
+	 */
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
 		// TODO Auto-generated method stub
@@ -195,18 +184,13 @@ public class RequestDispatcher extends AbstractComponent
 	public void		start() throws ComponentStartException
 	{
 		super.start() ;
-
-	
-	}
-	
-	public void doConnect() throws Exception{
 		try {
-			//connect to rg
+			//la connexion avec rg
 			this.doPortConnection(
 					this.rd_rg_rnop.getPortURI(),
 					this.rd_rg_rnipURI,
 					RequestNotificationConnector.class.getCanonicalName()) ;
-            //connect to vm
+            //la connexion avec tous les vms de cette application
 			for(int i = 0; i<this.vmURIList.size();i++){
 				this.doPortConnection(
 						this.rd_vm_rsopList.get(i).getPortURI(),
@@ -217,12 +201,14 @@ public class RequestDispatcher extends AbstractComponent
 		} catch (Exception e) {
 			throw new ComponentStartException(e) ;
 		}
+
+	
 	}
 	
 	
 	@Override
 	public void			finalise() throws Exception
-	{
+	{  
 		if(this.rd_rg_rnop.connected()) this.doPortDisconnection(this.rd_rg_rnop.getPortURI()) ;
 		for(int i = 0; i<this.vmURIList.size();i++){
 	       if(this.rd_vm_rsopList.get(i).connected()) 
@@ -252,7 +238,7 @@ public class RequestDispatcher extends AbstractComponent
 		super.shutdown();
 	}	
 	
-	
+	//trouver le vm le moins recent qui recevoit la requete
 	private int findIndexOfLeastRecentUse(){
 		int index = -1;
 		index = vmUseList.indexOf(Collections.min(vmUseList));
@@ -260,27 +246,5 @@ public class RequestDispatcher extends AbstractComponent
 		
 	}
 	
-	@Override
-	public void connectVm(String vmURI, String RequestSubmissionInboundPortURI) throws Exception {
-		// TODO Auto-generated method stub
-
-		
-	}
-
-	@Override
-	public void disconnectVm() throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
-
-
 
 }
-
-
-
-
-
-
-//
-//}

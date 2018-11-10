@@ -23,14 +23,14 @@ public class ApplicationNotificationInboundPort extends AbstractInboundPort impl
     }
 
     @Override
-    public void notifyRequestGeneratorCreated(final String apURI) throws Exception {
+    public void notifyRequestGeneratorCreated() throws Exception {
         
     	this.getOwner().handleRequestSync(
 				new AbstractComponent.AbstractService<Void>() {
 					@Override
 					public Void call() throws Exception {
 						(( AdmissionController)this.getOwner()).
-						notifyRequestGeneratorCreated(apURI);
+						notifyRequestGeneratorCreated();
 						return null;
 					}
 				}) ;

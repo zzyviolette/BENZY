@@ -19,19 +19,5 @@ implements RequestDispatcherManagementI {
 		assert	uri != null && owner != null ;
 	}
 
-	@Override
-	public void connectVm(String vmURI, String RequestSubmissionInboundPortURI) throws Exception {
-		// TODO Auto-generated method stub
-		( ( RequestDispatcherManagementI ) this.connector ).connectVm(vmURI, RequestSubmissionInboundPortURI);
-		
-	}
-
-	@Override
-	public void disconnectVm() throws Exception {
-		// TODO Auto-generated method stub
-		( ( RequestDispatcherManagementI ) this.connector ).disconnectVm();
-		
-	}
-
 
 }

@@ -93,10 +93,6 @@ extends		AbstractComponent
 	public void			start() throws ComponentStartException
 	{
 		super.start() ;
-	}
-	
-	public void doConnect() throws Exception{
-
 		try {
 			this.doPortConnection(
 				this.csop.getPortURI(),
@@ -118,7 +114,7 @@ extends		AbstractComponent
 			throw new ComponentStartException(e) ;
 		}
 	}
-
+	
 	/**
 	 * @see fr.sorbonne_u.components.AbstractComponent#execute()
 	 */
@@ -126,14 +122,11 @@ extends		AbstractComponent
 	public void			execute() throws Exception
 	{
 		super.execute() ;
-
-	}
-	
-	public void allocateCores(int nbCores) throws Exception{
 		for (int i = 0; i< this.avmopList.size(); i++) {
-			AllocatedCore[] ac = this.csop.allocateCores(nbCores);
+			AllocatedCore[] ac = this.csop.allocateCores(2);
 			this.avmopList.get(i).allocateCores(ac);
 		}
+
 	}
 
 	/**

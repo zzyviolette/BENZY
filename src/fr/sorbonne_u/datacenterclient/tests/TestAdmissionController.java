@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.sorbonne_u.components.cvm.AbstractCVM;
+import fr.sorbonne_u.datacenter.dymaniccomponentcreator.DynamicComponentCreator;
 import fr.sorbonne_u.datacenter.hardware.computers.Computer;
 import fr.sorbonne_u.datacenter.hardware.processors.Processor;
 import fr.sorbonne_u.datacenter.hardware.tests.ComputerMonitor;
@@ -17,19 +18,21 @@ import fr.sorbonne_u.datacenterclient.applicationprovider.connectors.Application
 import fr.sorbonne_u.datacenterclient.applicationprovider.interfaces.ApplicationProviderManagementI;
 import fr.sorbonne_u.datacenterclient.applicationprovider.ports.ApplicationProviderManagementOutboundPort;
 
+
+
 public class TestAdmissionController extends AbstractCVM {
 	
 
 
 	protected AdmissionController                   ac;
-	protected ComputerMonitor						cm ;
+	protected ComputerMonitor						cm;
+	protected DynamicComponentCreator               dcc;
 		
 	protected ArrayList<ApplicationProviderManagementOutboundPort>    apmopList;
-
 	
 	protected int sumComputer = 0;
 	
-	protected int sumApp = 3;
+	protected int sumApp = 2;
 	
 	
 	
@@ -42,8 +45,6 @@ public class TestAdmissionController extends AbstractCVM {
 		return portType +  sumComputer;
 	}
 	
-
-
 	@Override
 	public void deploy() throws Exception {
 		// TODO Auto-generated method stub
@@ -57,8 +58,8 @@ public class TestAdmissionController extends AbstractCVM {
 		String csipURI= createComputerURI("csip");
 		String cssdipURI= createComputerURI("cssdip");
 		String cdsdipURI= createComputerURI("cdsdip");
-		int numberOfProcessors = 6;
-		int numberOfCores = 2;
+		int numberOfProcessors = 2;
+		int numberOfCores = 4;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 		admissibleFrequencies.add(1500); // Cores can run at 1,5 GHz
 		admissibleFrequencies.add(3000); // and at 3 GHz
@@ -89,17 +90,21 @@ public class TestAdmissionController extends AbstractCVM {
 		
 		sumComputer++;
 	    
+		/*
+		 * Creation du dynamic component creator
+		 */
+		this.dcc = new DynamicComponentCreator("dccipURI");
+		this.addDeployedComponent(dcc);
 
 		this.ac = new AdmissionController("Admission Controller", "acmipURI",
-				"asipURI", "anipURI",csipURI);
+				"asipURI", "anipURI",csipURI,"dccipURI");
 
 		this.addDeployedComponent(this.ac);
 		// Toggle on tracing and logging in the application virtual machine to
 		// follow the execution of individual requests.
 		this.ac.toggleTracing();
 		this.ac.toggleLogging();
-		
-		
+				
 		this.apmopList = new ArrayList<>();
 		
 		for(int i = 0; i< sumApp; i++){
@@ -137,7 +142,7 @@ public class TestAdmissionController extends AbstractCVM {
 		// TODO Auto-generated method stub
 		super.execute();
 		for(int i =0 ; i<this.apmopList.size(); i++){
-			this.apmopList.get(i).sendApplication((i+1));
+			this.apmopList.get(i).sendApplication(2);
 		}
 		
 	}

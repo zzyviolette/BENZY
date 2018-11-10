@@ -268,10 +268,6 @@ implements	ProcessorServicesNotificationConsumerI,
 	public void			start() throws ComponentStartException
 	{
 		super.start() ;
-	}
-	
-	public void doConnect() throws Exception{
-
 		try {
 			this.doPortConnection(
 					this.requestNotificationOutboundPort.getPortURI(),
@@ -281,6 +277,8 @@ implements	ProcessorServicesNotificationConsumerI,
 			throw new ComponentStartException(e) ;
 		}
 	}
+	
+
 
 	@Override
 	public void			finalise() throws Exception

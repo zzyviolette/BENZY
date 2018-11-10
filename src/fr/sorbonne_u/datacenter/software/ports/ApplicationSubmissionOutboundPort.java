@@ -21,9 +21,9 @@ public class ApplicationSubmissionOutboundPort extends AbstractOutboundPort impl
 	}
 
 	@Override
-	public String[] submitApplication(String apURI, int nbVM) throws Exception {
+	public String[] submitApplication(int nbVM) throws Exception {
 		// TODO Auto-generated method stub
-		return ( ( ApplicationSubmissionI ) this.connector ).submitApplication( apURI,nbVM );
+		return ( ( ApplicationSubmissionI ) this.connector ).submitApplication( nbVM );
 	}
 
 }
