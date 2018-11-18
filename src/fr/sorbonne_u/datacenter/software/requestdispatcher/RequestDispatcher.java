@@ -23,8 +23,6 @@ import fr.sorbonne_u.datacenter.software.requestdispatcher.ports.RequestDispatch
 public class RequestDispatcher extends AbstractComponent
 		implements RequestSubmissionHandlerI, RequestNotificationHandlerI, RequestDispatcherManagementI {
 
-	// rg - RequestSubmissionInboundPort/RequestNotificationOutboundPort
-	// avm - RequestNotificationInboundPort/RequestSubmissionOutboundPort
 
 	/** URI of this request dispatcher RD */
 	protected String rdURI;

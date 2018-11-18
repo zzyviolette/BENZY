@@ -134,7 +134,7 @@ public class ApplicationProvider extends AbstractComponent {
 	@Override
 	public void			finalise() throws Exception
 	{
-	      if ( this.rgmop.connected() ) {
+	      if ( this.rgmop != null && this.rgmop.connected() ) {
               this.rgmop.doDisconnection();
           } 	
 	      if ( this.asop.connected() ) {
@@ -151,7 +151,7 @@ public class ApplicationProvider extends AbstractComponent {
 	public void shutdown() throws ComponentShutdownException {
 
 		try {
-			if (this.rgmop.isPublished()) this.rgmop.unpublishPort();
+			if (this.rgmop != null && this.rgmop.isPublished()) this.rgmop.unpublishPort();
 			if (this.asop.isPublished()) this.asop.unpublishPort();
 			if (this.anop.isPublished()) this.anop.unpublishPort();
 			

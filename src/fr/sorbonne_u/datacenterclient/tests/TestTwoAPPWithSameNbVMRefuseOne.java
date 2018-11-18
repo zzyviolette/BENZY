@@ -18,10 +18,15 @@ import fr.sorbonne_u.datacenterclient.applicationprovider.connectors.Application
 import fr.sorbonne_u.datacenterclient.applicationprovider.interfaces.ApplicationProviderManagementI;
 import fr.sorbonne_u.datacenterclient.applicationprovider.ports.ApplicationProviderManagementOutboundPort;
 
+/**senario : 2 application, chaque application demande 2 vms (et allouer 2 coeurs pour chaque vm ,
+ * donc il a besoin de 2*2 = 4 pour chauqe application)
+ * les ressources : 2 ordinateurs 
+ * (le premier ordi : nbAvailableCores =  numberOfProcessors * numberOfCores = 2*1 = 2 coeurs
+ *  le deuxieme ordi : nbAvailableCores =  numberOfProcessors * numberOfCores = 2*2 = 4 coeurs)
+ * Donc, CA accepte le premiere demande et refuse le deuxieme
+**/
 
-
-public class TestAdmissionController2Computer extends AbstractCVM {
-	
+public class TestTwoAPPWithSameNbVMRefuseOne extends AbstractCVM {
 
 
 	protected AdmissionController                   ac;
@@ -40,7 +45,7 @@ public class TestAdmissionController2Computer extends AbstractCVM {
 	
 	
 	
-	public TestAdmissionController2Computer() throws Exception {
+	public TestTwoAPPWithSameNbVMRefuseOne() throws Exception {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -54,13 +59,9 @@ public class TestAdmissionController2Computer extends AbstractCVM {
 		csipURIList = new String[sumComputer];
 		nbAvailableCoresPerComputer = new int[sumComputer];
 		for(int i =0; i< sumComputer; i++){
-            /**senario accept**/
+			//le premier computer a 2 cores au total , le deuxieme computer a 4 cores au total
 			int numberOfProcessors = 2;
-			int numberOfCores = 2;
-//			  /**senario refuse 1 demande de app**/
-//			//le premier computer a 2 cores au total , le deuxieme computer a 4 cores au total
-//			int numberOfProcessors = 2;
-//			int numberOfCores = (i+1);
+			int numberOfCores = (i+1);
 			Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 			admissibleFrequencies.add(1500); // Cores can run at 1,5 GHz
 			admissibleFrequencies.add(3000); // and at 3 GHz
@@ -82,14 +83,7 @@ public class TestAdmissionController2Computer extends AbstractCVM {
 		    nbAvailableCoresPerComputer[i] = numberOfProcessors * numberOfCores;
 			this.addDeployedComponent(c);
 			
-		}
-		// --------------------------------------------------------------------
-		// Create and deploy a computer component with its 2 processors and
-		// each with 2 cores.
-		// --------------------------------------------------------------------
-		
-		
-		// --------------------------------------------------------------------
+		}	
 
 		// --------------------------------------------------------------------
 		// Create the computer monitor component and connect its to ports
@@ -118,7 +112,7 @@ public class TestAdmissionController2Computer extends AbstractCVM {
 		this.apmopList = new ArrayList<>();
 		
 		for(int i = 0; i< sumApp; i++){
-			ApplicationProvider ap = new ApplicationProvider("ap"+i, "apmip" + i,
+			ApplicationProvider ap = new ApplicationProvider("ap"+(i+1), "apmip" + (i+1),
 					"asipURI", "anipURI");
 			this.addDeployedComponent(ap);
 			ap.toggleTracing();
@@ -141,7 +135,7 @@ public class TestAdmissionController2Computer extends AbstractCVM {
 	
 		for(int i = 0; i< this.apmopList.size(); i++){
 			System.out.println(this.apmopList.size());
-			this.apmopList.get(i).doConnection("apmip" + i,ApplicationProviderManagementConnector.class.getCanonicalName() );
+			this.apmopList.get(i).doConnection("apmip" + (i+1),ApplicationProviderManagementConnector.class.getCanonicalName() );
 		}
 		super.start();
 
@@ -173,7 +167,7 @@ public class TestAdmissionController2Computer extends AbstractCVM {
 		// Uncomment next line to execute components in debug mode.
 		// AbstractCVM.toggleDebugMode() ;
 		try {
-			final TestAdmissionController2Computer test = new TestAdmissionController2Computer() ;
+			final TestTwoAPPWithSameNbVMRefuseOne test = new TestTwoAPPWithSameNbVMRefuseOne() ;
 			test.startStandardLifeCycle(100000L) ;//10000
 			Thread.sleep(10000L) ;//10000
 	//		 Exit from Java.

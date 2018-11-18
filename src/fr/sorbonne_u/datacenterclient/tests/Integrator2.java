@@ -36,6 +36,8 @@ import fr.sorbonne_u.datacenterclient.requestgenerator.ports.RequestGeneratorMan
  * 
  * @author	<a href="mailto:Jacques.Malenfant@lip6.fr">Jacques Malenfant</a>
  */
+
+//This integrator is for CA
 public class				Integrator2
 extends		AbstractComponent
 {
@@ -50,6 +52,7 @@ extends		AbstractComponent
 	
 	protected RequestDispatcherManagementOutboundPort rdmop;
 
+	//csop is for allocation cores
 	public				Integrator2(
 		ComputerServicesOutboundPort  csop,
 		ArrayList<String> avmipURIList,

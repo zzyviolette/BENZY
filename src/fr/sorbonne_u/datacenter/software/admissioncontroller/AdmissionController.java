@@ -53,7 +53,7 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 
 	protected int sumCreatedVM = 0;
 	
-	protected int sumApp = 0;
+	protected int demandeApp = 0;
 	
 	
 
@@ -160,8 +160,10 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 	
 
 	public String[] submitApplication(int nbVm) throws Exception {
-		//check source
+		//augmente le nombre de application
+		this.demandeApp ++;	
 		
+		//check source
 		this.logMessage(this.acURI + " recevoit une demande de " + nbVm +" VM");
 		this.logMessage("check the ressource>>>>>>>>>>>>>>");
 		int index = findRessource(nbVm*nbCorePerAVM);
@@ -195,7 +197,7 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 		}
 		
 		//creer les uris de request dispathcher
-		String rdURI = "ap"+ sumApp + "-rd";
+		String rdURI = "ap"+ demandeApp + "-rd";
 		String rdmipURI = createURI("rdmip");
 		String rdrsipURI = createURI("rdrsip");
 		String rdrnipURI = createURI("rdrnip");
@@ -216,8 +218,6 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 		this.dccop.createComponent(Integrator2.class.getCanonicalName(),
 				argumentsIntegrator);
 		
-		//augmente le nombre de application
-		this.sumApp ++;	
 		
 		//retourner les uris de ports de dispathcher pour que le request generator fait la connection
 		String[] rdportURI = new String[2];
@@ -235,11 +235,11 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 	}
 	
 	private String createURI(String portType){
-		return portType + this.sumApp ;
+		return portType + this.demandeApp ;
 	}
 	
 	private String createVMURI(String portType){
-		return "ap" + this.sumApp +"-"+ portType + this.sumCreatedVM;
+		return "ap" + this.demandeApp +"-"+ portType + this.sumCreatedVM;
 	}
 	
 

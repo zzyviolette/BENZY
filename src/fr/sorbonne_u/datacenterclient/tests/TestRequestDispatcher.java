@@ -269,7 +269,7 @@ public class TestRequestDispatcher extends AbstractCVM {
 		// AbstractCVM.toggleDebugMode() ;
 		try {
 			final TestRequestDispatcher trd = new TestRequestDispatcher();
-			trd.startStandardLifeCycle(10000L);// 10000
+			trd.startStandardLifeCycle(100000L);// 10000
 			Thread.sleep(10000L);
 			// Exit from Java.
 			System.exit(0);
