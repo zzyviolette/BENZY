@@ -39,6 +39,8 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.management.InstanceAlreadyExistsException;
+
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
@@ -46,6 +48,7 @@ import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.datacenter.dymaniccomponentcreator.interfaces.DynamicComponentCreationI;
 import fr.sorbonne_u.datacenter.dymaniccomponentcreator.ports.DynamicComponentCreationInboundPort;
+import fr.sorbonne_u.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.sorbonne_u.datacenterclient.tests.Integrator2;
 
 //-----------------------------------------------------------------------------
@@ -185,6 +188,15 @@ extends		AbstractComponent
 	
 		
 	}
+	
+//	public void allocation(ComputerServicesOutboundPort	portComp,int nbCorePeravm) throws Exception{
+//		for(AbstractComponent c : componentsList){
+//			if( c instanceof Integrator2 ){
+//				((DynamicComponentCreator) c).allocation(portComp, nbCorePeravm);		
+//			}
+//			
+//	}
+//	}
 
 	public void executeComponent() throws Exception {
 		

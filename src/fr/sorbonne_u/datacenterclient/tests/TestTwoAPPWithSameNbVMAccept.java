@@ -40,6 +40,8 @@ public class TestTwoAPPWithSameNbVMAccept extends AbstractCVM {
 	
 	protected int sumApp = 2;
 	
+	protected Computer[]            computersList;
+	
 	
 	
 	public TestTwoAPPWithSameNbVMAccept() throws Exception {
@@ -54,7 +56,7 @@ public class TestTwoAPPWithSameNbVMAccept extends AbstractCVM {
 		Processor.DEBUG = true ;
         
 		csipURIList = new String[sumComputer];
-		nbAvailableCoresPerComputer = new int[sumComputer];
+		computersList = new Computer[sumComputer];
 		for(int i =0; i< sumComputer; i++){
 			int numberOfProcessors = 2;
 			int numberOfCores = 2;
@@ -76,7 +78,7 @@ public class TestTwoAPPWithSameNbVMAccept extends AbstractCVM {
 					numberOfProcessors, numberOfCores, "csip"+i,
 					"cssdip"+i, "cdsdip"+i);
 		    csipURIList[i] = "csip"+i;
-		    nbAvailableCoresPerComputer[i] = numberOfProcessors * numberOfCores;
+			computersList[i]= c;
 			this.addDeployedComponent(c);
 			
 		}	
@@ -97,7 +99,7 @@ public class TestTwoAPPWithSameNbVMAccept extends AbstractCVM {
 		this.addDeployedComponent(dcc);
 
 		this.ac = new AdmissionController("Admission Controller", "acmipURI",
-				"asipURI", "anipURI",csipURIList,nbAvailableCoresPerComputer,"dccipURI");
+				"asipURI", "anipURI",computersList,csipURIList,"dccipURI");
 
 		this.addDeployedComponent(this.ac);
 		// Toggle on tracing and logging in the application virtual machine to

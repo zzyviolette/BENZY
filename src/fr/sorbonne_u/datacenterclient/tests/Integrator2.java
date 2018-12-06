@@ -1,6 +1,7 @@
 package fr.sorbonne_u.datacenterclient.tests;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.omg.CORBA.INTERNAL;
 
@@ -44,6 +45,7 @@ extends		AbstractComponent
 	protected String									rmipURI ;
 	protected ArrayList<String>							avmipURIList ;
 	protected String                                    rdmipURI;
+	protected ArrayList<AllocatedCore[]> allocatedCores;
 
 	/** Port connected to the computer component to access its services.	*/
 	protected ComputerServicesOutboundPort			csop ;
@@ -54,19 +56,20 @@ extends		AbstractComponent
 
 	//csop is for allocation cores
 	public				Integrator2(
-		ComputerServicesOutboundPort  csop,
+		ArrayList<AllocatedCore[]> allocatedCores,
 		ArrayList<String> avmipURIList,
 		String rdmipURI
 		) throws Exception
 	{
 		super(1, 0) ;
 
-		assert	csop != null && rdmipURI != null && avmipURIList.size()>0;
+		assert	allocatedCores.size() > 0 && rdmipURI != null && avmipURIList.size()>0;
 
 		this.rdmipURI = rdmipURI;
-		this.csop = csop;
+		//this.csop = csop;
 		this.avmipURIList = new ArrayList<>(avmipURIList);
-
+        this.allocatedCores = allocatedCores;
+        
 		this.addRequiredInterface(ComputerServicesI.class) ;
 		this.addRequiredInterface(RequestGeneratorManagementI.class) ;
 		this.addRequiredInterface(ApplicationVMManagementI.class) ;
@@ -117,8 +120,7 @@ extends		AbstractComponent
 	{
 		super.execute() ;
 		for (int i = 0; i< this.avmopList.size(); i++) {
-			AllocatedCore[] ac = this.csop.allocateCores(2);
-			this.avmopList.get(i).allocateCores(ac);
+			this.avmopList.get(i).allocateCores(this.allocatedCores.get(i));
 		}
 
 	}

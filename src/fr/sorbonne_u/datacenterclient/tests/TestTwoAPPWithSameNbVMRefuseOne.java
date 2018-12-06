@@ -35,13 +35,13 @@ public class TestTwoAPPWithSameNbVMRefuseOne extends AbstractCVM {
     
 	protected String[]                       csipURIList;
 	
-	protected int[]                           nbAvailableCoresPerComputer;
-	
 	protected ArrayList<ApplicationProviderManagementOutboundPort>    apmopList;
 	
 	protected int sumComputer = 2;
 	
 	protected int sumApp = 2;
+	
+	protected Computer[]            computersList;
 	
 	
 	
@@ -55,9 +55,10 @@ public class TestTwoAPPWithSameNbVMRefuseOne extends AbstractCVM {
 	public void deploy() throws Exception {
 		// TODO Auto-generated method stub
 		Processor.DEBUG = true ;
-        
+        	
 		csipURIList = new String[sumComputer];
-		nbAvailableCoresPerComputer = new int[sumComputer];
+		computersList = new Computer[sumComputer];
+		
 		for(int i =0; i< sumComputer; i++){
 			//le premier computer a 2 cores au total , le deuxieme computer a 4 cores au total
 			int numberOfProcessors = 2;
@@ -79,8 +80,8 @@ public class TestTwoAPPWithSameNbVMRefuseOne extends AbstractCVM {
 					1500, // max frequency gap within a processor
 					numberOfProcessors, numberOfCores, "csip"+i,
 					"cssdip"+i, "cdsdip"+i);
+			computersList[i]= c;
 		    csipURIList[i] = "csip"+i;
-		    nbAvailableCoresPerComputer[i] = numberOfProcessors * numberOfCores;
 			this.addDeployedComponent(c);
 			
 		}	
@@ -101,7 +102,7 @@ public class TestTwoAPPWithSameNbVMRefuseOne extends AbstractCVM {
 		this.addDeployedComponent(dcc);
 
 		this.ac = new AdmissionController("Admission Controller", "acmipURI",
-				"asipURI", "anipURI",csipURIList,nbAvailableCoresPerComputer,"dccipURI");
+				"asipURI", "anipURI",computersList,csipURIList,"dccipURI");
 
 		this.addDeployedComponent(this.ac);
 		// Toggle on tracing and logging in the application virtual machine to
