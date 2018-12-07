@@ -42,41 +42,30 @@ import fr.sorbonne_u.datacenterclient.requestgenerator.ports.RequestGeneratorMan
 public class				Integrator2
 extends		AbstractComponent
 {
-	protected String									rmipURI ;
 	protected ArrayList<String>							avmipURIList ;
 	protected String                                    rdmipURI;
-	protected ArrayList<AllocatedCore[]> allocatedCores;
+	protected ArrayList<AllocatedCore[]>                allocatedCores;
 
-	/** Port connected to the computer component to access its services.	*/
-	protected ComputerServicesOutboundPort			csop ;
 	/** Port connected to the AVM component to allocate it cores.			*/
 	protected ArrayList<ApplicationVMManagementOutboundPort> avmopList;
 	
-	protected RequestDispatcherManagementOutboundPort rdmop;
 
 	//csop is for allocation cores
 	public				Integrator2(
 		ArrayList<AllocatedCore[]> allocatedCores,
-		ArrayList<String> avmipURIList,
-		String rdmipURI
+		ArrayList<String> avmipURIList
 		) throws Exception
 	{
 		super(1, 0) ;
 
-		assert	allocatedCores.size() > 0 && rdmipURI != null && avmipURIList.size()>0;
+		assert	allocatedCores.size() > 0  && avmipURIList.size()>0;
 
-		this.rdmipURI = rdmipURI;
-		//this.csop = csop;
 		this.avmipURIList = new ArrayList<>(avmipURIList);
         this.allocatedCores = allocatedCores;
         
 		this.addRequiredInterface(ComputerServicesI.class) ;
 		this.addRequiredInterface(RequestGeneratorManagementI.class) ;
 		this.addRequiredInterface(ApplicationVMManagementI.class) ;
-
-		this.rdmop = new RequestDispatcherManagementOutboundPort(this) ;
-		this.addPort(this.rdmop) ;
-		this.rdmop.publishPort() ;
 
 		this.avmopList = new ArrayList<ApplicationVMManagementOutboundPort>();
 		for(int i = 0; i<this.avmipURIList.size(); i++){
@@ -103,10 +92,6 @@ extends		AbstractComponent
 						ApplicationVMManagementConnector.class.getCanonicalName()) ;
 			}
 			
-			this.doPortConnection(
-					this.rdmop.getPortURI(),
-					rdmipURI,
-					RequestDispatcherManagementConnector.class.getCanonicalName()) ;
 		} catch (Exception e) {
 			throw new ComponentStartException(e) ;
 		}
@@ -131,12 +116,12 @@ extends		AbstractComponent
 	@Override
 	public void			finalise() throws Exception
 	{
-		this.doPortDisconnection(this.rdmop.getPortURI()) ;
 		for (int i = 0; i< this.avmopList.size(); i++) { 
-			this.doPortDisconnection(this.avmopList.get(i).getPortURI());
+			if(this.avmopList.get(i).connected()) this.doPortDisconnection(this.avmopList.get(i).getPortURI());
 		}
 		
 		super.finalise();
+		System.out.println("integr fin");
 	}
 
 	/**
@@ -146,30 +131,15 @@ extends		AbstractComponent
 	public void			shutdown() throws ComponentShutdownException
 	{
 		try {
-			this.rdmop.unpublishPort() ;
 			for (int i = 0; i< this.avmopList.size(); i++) { 
-				this.avmopList.get(i).unpublishPort();
+				if(this.avmopList.get(i).isPublished()) this.avmopList.get(i).unpublishPort();
 			}
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e) ;
 		}
 		super.shutdown();
+		System.out.println("integr shut");
 	}
 
-	/**
-	 * @see fr.sorbonne_u.components.AbstractComponent#shutdownNow()
-	 */
-	@Override
-	public void			shutdownNow() throws ComponentShutdownException
-	{
-		try {
-			this.rdmop.unpublishPort() ;
-			for (int i = 0; i< this.avmopList.size(); i++) { 
-				this.avmopList.get(i).unpublishPort();
-			}
-		} catch (Exception e) {
-			throw new ComponentShutdownException(e) ;
-		}
-		super.shutdownNow();
-	}
+	
 }

@@ -112,18 +112,27 @@ extends		AbstractComponent
 	// Component life-cycle
 	//-------------------------------------------------------------------------
 
+	@Override
+	public void	finalise() throws Exception
+	{
+		
+		super.finalise();
+	}
+	
 	/**
 	 * @see fr.sorbonne_u.components.AbstractComponent#shutdown()
 	 */
 	@Override
 	public void			shutdown() throws ComponentShutdownException
 	{
+
 		try {
-			this.p.unpublishPort() ;
+			if(p.isPublished()) this.p.unpublishPort() ;
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e);
 		}
 		super.shutdown();
+
 	}
 
 	//-------------------------------------------------------------------------
@@ -189,15 +198,6 @@ extends		AbstractComponent
 		
 	}
 	
-//	public void allocation(ComputerServicesOutboundPort	portComp,int nbCorePeravm) throws Exception{
-//		for(AbstractComponent c : componentsList){
-//			if( c instanceof Integrator2 ){
-//				((DynamicComponentCreator) c).allocation(portComp, nbCorePeravm);		
-//			}
-//			
-//	}
-//	}
-
 	public void executeComponent() throws Exception {
 		
 		for(AbstractComponent c : componentsList){

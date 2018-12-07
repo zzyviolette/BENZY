@@ -6,6 +6,9 @@ import java.util.Collections;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
+import fr.sorbonne_u.datacenter.hardware.computers.Computer.AllocatedCore;
+import fr.sorbonne_u.datacenter.software.applicationvm.connectors.ApplicationVMManagementConnector;
+import fr.sorbonne_u.datacenter.software.applicationvm.ports.ApplicationVMManagementOutboundPort;
 import fr.sorbonne_u.datacenter.software.connectors.RequestNotificationConnector;
 import fr.sorbonne_u.datacenter.software.connectors.RequestSubmissionConnector;
 import fr.sorbonne_u.datacenter.software.interfaces.RequestI;
@@ -44,11 +47,13 @@ public class RequestDispatcher extends AbstractComponent
 	protected ArrayList<RequestNotificationInboundPort> rd_vm_rnipList;
 	protected ArrayList<RequestSubmissionOutboundPort> rd_vm_rsopList;
 	
-	// la priorite des vms (LRU algo)
-	protected ArrayList<Long> vmUseList;
+	protected ArrayList<ApplicationVMManagementOutboundPort> avmopList; 
+	
+	
+	protected int choice ; 
 
 
-	public RequestDispatcher(String rdURI, String rdmip, String rg_rsipURI, String rg_rnipURI,ArrayList<String> vmURIList, ArrayList<String> vm_rsipURIList, ArrayList<String> vm_rnipURIList)
+	public RequestDispatcher(String rdURI, String rdmip, String rg_rsipURI, String rg_rnipURI)
 			throws Exception {
 		super(1, 1);
 
@@ -57,26 +62,16 @@ public class RequestDispatcher extends AbstractComponent
 	    assert rdmip !=null;
 	    assert rg_rsipURI !=null;
 	    assert rg_rnipURI != null;
-	    assert vmURIList.size()>0;
-	    assert vm_rsipURIList.size()>0;
-	    assert vm_rnipURIList.size()>0;
 	    
 		this.rdURI = rdURI;
 		this.rd_rg_rsipURI = rg_rsipURI;
 		this.rd_rg_rnipURI = rg_rnipURI;
-		
-		this.rd_vm_rsipURIList = new ArrayList<>(vm_rsipURIList);
-		this.rd_vm_rnipURIList = new ArrayList<>(vm_rnipURIList);
-		
+
 		this.rd_vm_rnipList = new ArrayList<RequestNotificationInboundPort>();
 		this.rd_vm_rsopList = new ArrayList<RequestSubmissionOutboundPort>();
 		
-		this.vmURIList = new ArrayList<>(vmURIList);
-		this.vmUseList = new ArrayList<>();
-		
-		for(int i = 0; i<this.vmURIList.size();i++){
-			this.vmUseList.add(System.nanoTime());
-		}
+		this.vmURIList = new ArrayList<>();
+		this.avmopList = new ArrayList<ApplicationVMManagementOutboundPort>();
 			
 
 		// Creates and add ports to the component
@@ -97,29 +92,10 @@ public class RequestDispatcher extends AbstractComponent
 		this.rd_rg_rnop = new RequestNotificationOutboundPort(this);
 		this.addPort(this.rd_rg_rnop);
 		this.rd_rg_rnop.publishPort();
-
-
-		//la connextion pour tous les vms 
-		
-		for(int i = 0; i<this.vmURIList.size(); i++){
-			
-			this.addOfferedInterface(RequestNotificationI.class);
-			RequestNotificationInboundPort rnip = new RequestNotificationInboundPort(rd_vm_rnipURIList.get(i), this);
-			this.rd_vm_rnipList.add(rnip);
-			this.addPort(rnip);
-			this.rd_vm_rnipList.get(i).publishPort();	
-
-			this.addRequiredInterface(RequestSubmissionI.class);
-			RequestSubmissionOutboundPort rsop = new RequestSubmissionOutboundPort(this);
-			this.rd_vm_rsopList.add(rsop);
-			this.addPort(rsop);
-			this.rd_vm_rsopList.get(i).publishPort();
-		}
 		
 		assert this.rd_rg_rsip != null && this.rd_rg_rsip instanceof RequestSubmissionI;
 		assert this.rd_rg_rnop != null && this.rd_rg_rnop instanceof RequestNotificationI;
-		assert this.rd_vm_rnipList.size()>0;
-		assert this.rd_vm_rsopList.size()>0;
+
 
 		
 	}
@@ -132,13 +108,10 @@ public class RequestDispatcher extends AbstractComponent
 		// TODO Auto-generated method stub
 		assert r != null;
 		this.logMessage(  this.rdURI + " recevoit le request " + r.getRequestURI() +" de RG");
-		int index = findIndexOfLeastRecentUse();
-		if(index!=-1){
-			this.vmUseList.set(index, System.nanoTime());
-			this.rd_vm_rsopList.get(index).submitRequest(r);
-			//this.logMessage( "Request Dispatcher" + rdURI + " envoye le request " + r.getRequestURI() +" a VM" +this.vmURIList.get(index) );		
-		}
-	
+		
+		choice = choice % this.vmURIList.size();
+		this.rd_vm_rsopList.get(choice).submitRequest(r);
+		choice++;	
 
 	}
 	
@@ -154,12 +127,10 @@ public class RequestDispatcher extends AbstractComponent
 		assert r != null;
 		
 		this.logMessage(  this.rdURI + " recevoit le request " + r.getRequestURI() +" de request generator");
-		int index = findIndexOfLeastRecentUse();
-		if(index!=-1){
-			this.vmUseList.set(index, System.nanoTime());
-			this.rd_vm_rsopList.get(index).submitRequestAndNotify(r);
-			this.logMessage( this.rdURI + " envoye le request " + r.getRequestURI() +" a " + this.vmURIList.get(index) );		
-		}
+		choice =  choice % this.vmURIList.size();
+		this.rd_vm_rsopList.get(choice).submitRequestAndNotify(r);
+		this.logMessage( this.rdURI + " envoye le request " + r.getRequestURI() +" a " + this.vmURIList.get(choice) );
+		choice++;
 
 	}
 	
@@ -183,18 +154,11 @@ public class RequestDispatcher extends AbstractComponent
 	{
 		super.start() ;
 		try {
-			//la connexion avec rg
+			//la connection avec rg
 			this.doPortConnection(
 					this.rd_rg_rnop.getPortURI(),
 					this.rd_rg_rnipURI,
 					RequestNotificationConnector.class.getCanonicalName()) ;
-            //la connexion avec tous les vms de cette application
-			for(int i = 0; i<this.vmURIList.size();i++){
-				this.doPortConnection(
-						this.rd_vm_rsopList.get(i).getPortURI(),
-						this.rd_vm_rsipURIList.get(i),
-						RequestSubmissionConnector.class.getCanonicalName()) ;
-			}
 			
 		} catch (Exception e) {
 			throw new ComponentStartException(e) ;
@@ -208,10 +172,16 @@ public class RequestDispatcher extends AbstractComponent
 	public void			finalise() throws Exception
 	{  
 		if(this.rd_rg_rnop.connected()) this.doPortDisconnection(this.rd_rg_rnop.getPortURI()) ;
+		
 		for(int i = 0; i<this.vmURIList.size();i++){
 	       if(this.rd_vm_rsopList.get(i).connected()) 
 	    	   this.doPortDisconnection(this.rd_vm_rsopList.get(i).getPortURI());
 		}
+		
+		for (int i = 0; i < this.avmopList.size(); i++ ) { 
+			if (this.avmopList.get(i).connected()) this.avmopList.get(i).doDisconnection();;			
+		}
+		
 		super.finalise() ;
 	}
 
@@ -219,7 +189,6 @@ public class RequestDispatcher extends AbstractComponent
 	public void shutdown() throws ComponentShutdownException {
 
 		try {
-			if (this.rdmip.isPublished()) this.rdmip.unpublishPort();
 			//rg
 			if (this.rd_rg_rnop.isPublished()) this.rd_rg_rnop.unpublishPort();
 			if (this.rd_rg_rsip.isPublished()) this.rd_rg_rsip.unpublishPort();
@@ -229,6 +198,11 @@ public class RequestDispatcher extends AbstractComponent
 				if (this.rd_vm_rnipList.get(i).isPublished()) this.rd_vm_rnipList.get(i).unpublishPort();				
 			}
 			
+			for (int i = 0; i < this.avmopList.size(); i++ ) { 
+				if (this.avmopList.get(i).isPublished()) this.avmopList.get(i).unpublishPort();			
+			}
+			
+			
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e);
 		}
@@ -236,13 +210,72 @@ public class RequestDispatcher extends AbstractComponent
 		super.shutdown();
 	}	
 	
-	//trouver le vm le moins recent qui recevoit la requete
-	private int findIndexOfLeastRecentUse(){
-		int index = -1;
-		index = vmUseList.indexOf(Collections.min(vmUseList));
-		return index;
+
+	@Override
+	public void disconnectVm(String vmURI) throws Exception {
+		// TODO Auto-generated method stub
+	    int index = this.vmURIList.indexOf(vmURI);  
+	    
+	    if(this.rd_vm_rsopList.get(index).connected()) 
+	    	   this.doPortDisconnection(this.rd_vm_rsopList.get(index).getPortURI());
+	    if(this.avmopList.get(index).connected()) 
+	    	   this.doPortDisconnection(this.avmopList.get(index).getPortURI());
+	    
+	   
+	    if (this.rd_vm_rsopList.get(index).isPublished()) this.rd_vm_rsopList.get(index).unpublishPort();	
+	    if (this.rd_vm_rnipList.get(index).isPublished()) this.rd_vm_rnipList.get(index).unpublishPort();	
+	    if (this.avmopList.get(index).isPublished()) this.avmopList.get(index).unpublishPort();	
+	   
+	    this.rd_vm_rnipList.remove(index);
+	    this.rd_vm_rsopList.remove(index);
+	    this.vmURIList.remove(index);
+	    this.avmopList.remove(index);
 		
 	}
 	
+	@Override
+	public void allocatedCore(String vmURI, AllocatedCore[] allocatedCores) throws Exception{
+		 int index = this.vmURIList.indexOf(vmURI);  
+	     this.avmopList.get(index).allocateCores(allocatedCores);
+	}
+	
 
+	@Override
+	public void connectVm(String vmURI, String RequestSubmissionInboundPortURI,
+			String RequestNotificationInboundPortURI, String avmipURI) throws Exception {
+		// TODO Auto-generated method stub
+		
+		this.vmURIList.add(vmURI);
+		
+		this.addOfferedInterface(RequestNotificationI.class);
+		RequestNotificationInboundPort rnip = new RequestNotificationInboundPort(RequestNotificationInboundPortURI, this);
+		this.rd_vm_rnipList.add(rnip);
+		this.addPort(rnip);
+		rnip.publishPort();	
+
+		this.addRequiredInterface(RequestSubmissionI.class);
+		RequestSubmissionOutboundPort rsop = new RequestSubmissionOutboundPort(this);
+		this.rd_vm_rsopList.add(rsop);
+		this.addPort(rsop);
+		rsop.publishPort();
+		
+		this.doPortConnection(
+				rsop.getPortURI(),
+				RequestSubmissionInboundPortURI,
+				RequestSubmissionConnector.class.getCanonicalName()) ;
+		
+		
+		ApplicationVMManagementOutboundPort avmop = new ApplicationVMManagementOutboundPort(this);
+		this.avmopList.add(avmop);
+		this.addPort(avmop);
+		avmop.publishPort();		
+		
+		
+		this.doPortConnection(
+				avmop.getPortURI(),
+				avmipURI,
+				ApplicationVMManagementConnector.class.getCanonicalName()) ;
+			
+	}
+	
 }

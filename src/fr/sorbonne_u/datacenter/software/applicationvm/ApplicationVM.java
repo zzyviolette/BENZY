@@ -283,6 +283,7 @@ implements	ProcessorServicesNotificationConsumerI,
 	@Override
 	public void			finalise() throws Exception
 	{
+
 		this.doPortDisconnection(
 							this.requestNotificationOutboundPort.getPortURI()) ;
 		super.finalise() ;
@@ -296,6 +297,8 @@ implements	ProcessorServicesNotificationConsumerI,
 	{
 		// Disconnect ports to the request emitter and to the processors owning
 		// the allocated cores.
+		
+		System.out.println("avm shut down");
 		try {
 			if (this.requestNotificationOutboundPort.connected()) {
 				this.requestNotificationOutboundPort.doDisconnection() ;

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import fr.sorbonne_u.components.AbstractComponent;
+import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.datacenter.dymaniccomponentcreator.connectors.DynamicComponentCreationConnector;
 import fr.sorbonne_u.datacenter.dymaniccomponentcreator.interfaces.DynamicComponentCreationI;
@@ -22,7 +23,8 @@ import fr.sorbonne_u.datacenter.software.interfaces.ApplicationSubmissionI;
 import fr.sorbonne_u.datacenter.software.ports.ApplicationNotificationInboundPort;
 import fr.sorbonne_u.datacenter.software.ports.ApplicationSubmissionInboundPort;
 import fr.sorbonne_u.datacenter.software.requestdispatcher.RequestDispatcher;
-import fr.sorbonne_u.datacenterclient.tests.Integrator2;
+import fr.sorbonne_u.datacenter.software.requestdispatcher.connectors.RequestDispatcherManagementConnector;
+import fr.sorbonne_u.datacenter.software.requestdispatcher.ports.RequestDispatcherManagementOutboundPort;
 
 public class AdmissionController extends AbstractComponent implements AdmissionControllerManagementI {
 
@@ -52,6 +54,8 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 	protected DynamicComponentCreationOutboundPort dccop;
 	
 	protected ComputerServicesOutboundPort[]	csopList ;
+	
+	protected ArrayList<RequestDispatcherManagementOutboundPort>	rdmopList ;
 	
 	protected Computer[] computersList;
 
@@ -112,6 +116,8 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 		   csopList[i]=csop;
 		}
 		
+		rdmopList = new ArrayList<RequestDispatcherManagementOutboundPort>();
+		
 		// les ports pour la connexion avec dynamique creator
 		addRequiredInterface(DynamicComponentCreationI.class);
 		this.dccop = new DynamicComponentCreationOutboundPort(this);
@@ -126,7 +132,7 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 		// TODO Auto-generated method stub
 		super.start();
 		try {
-			for(int i =0; i< this.csipURIList.length;i++){
+			for(int i = 0; i< this.csipURIList.length;i++){
 				this.doPortConnection(
 				this.csopList[i].getPortURI(),
 				this.csipURIList[i],
@@ -142,26 +148,41 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 
 	@Override
 	public void finalise() throws Exception {
-		for(int i =0; i< this.csipURIList.length;i++){
+		for(int i =0; i< this.csopList.length;i++){
 			if(this.csopList[i].connected()) this.csopList[i].doDisconnection();
+			}
+		for(int i = 0; i< this.rdmopList.size();i++){
+			if(this.rdmopList.get(i).connected()) this.rdmopList.get(i).doDisconnection();
 			}
 		if(this.acmop.connected()) this.acmop.doDisconnection();
 		if(this.dccop.connected()) this.dccop.doDisconnection();
-		super.finalise();
 	}
 	
-
 	
-	public int findRessource(int nbCores){
-		int index = -1;
-		for (int i = 0; i < this.nbAvailableCoresPerComputer.length; i++) {
-			if (this.nbAvailableCoresPerComputer[i] >= nbCores) {
-				return i;
+	@Override
+	public void shutdown() throws ComponentShutdownException {
+		try {
+		
+			for (int i = 0; i <  this.csopList.length;i++ ) { 
+				System.out.println("ca for csop");
+				if (this.csopList[i].isPublished()) this.csopList[i].unpublishPort();					
 			}
+			for(int i = 0; i< this.rdmopList.size();i++){
+				System.out.println("ca for rdmop");
+				if(this.rdmopList.get(i).isPublished()) this.rdmopList.get(i).unpublishPort();
+				}
+			System.out.println("ca for acmop");
+			if (this.acmop.isPublished()) this.acmop.unpublishPort();
+			System.out.println("ca for dccop");
+			if (this.dccop.isPublished()) this.dccop.unpublishPort();
+			System.out.println("fin");
+			
+		} catch (Exception e) {
+			throw new ComponentShutdownException(e);
 		}
-		return index;
+
 	}
-	
+		
 
 	public String[] submitApplication(int nbVm) throws Exception {
 			//augmente le nombre de application
@@ -176,8 +197,9 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 				int range = 3;
 				int randomNum =  rn.nextInt(range) + 1;
 				corePerAVM[i]=randomNum;
-				this.logMessage( "VM " + (i+1) + " demande " + randomNum + "Cores");
+				this.logMessage( "VM " + (i+1) + " demande " + randomNum + " Cores");
 			}
+			
 			this.logMessage("check the ressource>>>>>>>>>>>>>>");
 			 ArrayList<AllocatedCore[]> allocatedCores = findRessouces(corePerAVM,nbVm);
 			 if(allocatedCores == null) {
@@ -192,7 +214,6 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 			ArrayList<String> avmipURIList = new ArrayList<>();
 			ArrayList<String> avmrnipURIList = new ArrayList<>();
 			ArrayList<String> avmrsipURIList = new ArrayList<>();
-
 			
 			
 			for (int i = 0; i < nbVm; i++) {
@@ -220,20 +241,25 @@ public class AdmissionController extends AbstractComponent implements AdmissionC
 			
 			//creer le dispather 
 			Object[] argumentsDispatcher = {rdURI, 
-					rdmipURI,rdrsipURI, rdrnipURI, 
-					vmURIList, 
-					avmrsipURIList, 
-					avmrnipURIList};
+					rdmipURI,rdrsipURI, rdrnipURI};
 			this.dccop.createComponent(RequestDispatcher.class.getCanonicalName(),
 					argumentsDispatcher);	
 			
-			//creer le integrator
-		   Object[] argumentsIntegrator = {
-				allocatedCores,avmipURIList,rdmipURI};
 			
-			this.dccop.createComponent(Integrator2.class.getCanonicalName(),
-					argumentsIntegrator);
+			RequestDispatcherManagementOutboundPort rdmop = new RequestDispatcherManagementOutboundPort(this) ;
+			addPort(rdmop) ;
+			rdmop.publishPort();
+			rdmopList.add(rdmop);
 			
+			this.doPortConnection(
+			rdmop.getPortURI(),
+			rdmipURI,
+			RequestDispatcherManagementConnector.class.getCanonicalName()) ;
+			
+			for(int i = 0; i<vmURIList.size();i++){
+				rdmop.connectVm(vmURIList.get(i), avmrsipURIList.get(i),avmrnipURIList.get(i),avmipURIList.get(i));
+				rdmop.allocatedCore(vmURIList.get(i), allocatedCores.get(i));
+			}
 			
 			//retourner les uris de ports de dispathcher pour que le request generator fait la connection
 			String[] rdportURI = new String[2];

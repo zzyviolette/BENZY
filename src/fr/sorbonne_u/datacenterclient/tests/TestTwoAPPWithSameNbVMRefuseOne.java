@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.sorbonne_u.components.cvm.AbstractCVM;
+import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.datacenter.dymaniccomponentcreator.DynamicComponentCreator;
 import fr.sorbonne_u.datacenter.hardware.computers.Computer;
 import fr.sorbonne_u.datacenter.hardware.processors.Processor;
@@ -157,10 +158,29 @@ public class TestTwoAPPWithSameNbVMRefuseOne extends AbstractCVM {
 	@Override
 	public void			finalise() throws Exception
 	{
+		
 		for(int i =0 ; i<this.apmopList.size(); i++){
 			if(this.apmopList.get(i).connected()) this.apmopList.get(i).doDisconnection();
 		}
 		super.finalise();
+	}
+	
+	@Override
+	public void shutdown() throws Exception {
+		System.out.println("int test");
+		try {
+
+			for(int i =0 ; i<this.apmopList.size(); i++){
+				System.out.println("int test for");
+				if(this.apmopList.get(i).isPublished()) this.apmopList.get(i).unpublishPort();
+			}
+	
+			
+		} catch (Exception e) {
+			throw new ComponentShutdownException(e);
+		}
+
+		super.shutdown();
 	}
 	
 	public static void	main(String[] args)
